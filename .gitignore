@@ -1,0 +1,11 @@
+bin/
+redops.db
+*.db
+*.db-wal
+*.db-shm
+.env
+__pycache__/
+node_modules/
+.next/
+dist/
+.DS_Store
