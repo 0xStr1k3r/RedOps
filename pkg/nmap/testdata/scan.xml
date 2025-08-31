@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nmaprun scanner="nmap" version="7.94">
+<host><status state="up" reason="syn-ack"/>
+<address addr="10.10.10.10" addrtype="ipv4"/>
+<hostnames><hostname name="web01.lab" type="PTR"/></hostnames>
+<ports>
+<port protocol="tcp" portid="22"><state state="open"/><service name="ssh" product="OpenSSH" version="9.6"/></port>
+<port protocol="tcp" portid="80"><state state="open"/><service name="http" product="nginx" version="1.24"/></port>
+<port protocol="tcp" portid="22"><state state="closed"/><service name="x"/></port>
+</ports>
+<os><osmatch name="Linux 5.X" accuracy="95"/></os>
+</host>
+</nmaprun>

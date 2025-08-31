@@ -1,0 +1,15 @@
+# Phase 1: API only. Postgres/Neo4j/Redis join in Phase 6 (see deployments/).
+services:
+  redops-api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      REDOPS_DB: /data/redops.db
+      REDOPS_JWT_SECRET: ${REDOPS_JWT_SECRET:?set a 32+ char secret in .env}
+    volumes:
+      - redops-data:/data
+    restart: unless-stopped
+
+volumes:
+  redops-data:
