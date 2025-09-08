@@ -1,0 +1,2 @@
+{"host":"web01.lab","a":["10.10.10.10"]}
+{"host":"app01.lab","a":["10.10.10.11"],"cname":["app.internal"]}
