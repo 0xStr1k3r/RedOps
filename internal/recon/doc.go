@@ -1,4 +1,5 @@
-// Package recon is a Phase 2+ placeholder. See docs/roadmap.md.
-// Phase 1 intentionally ships no tool execution here; all target intake
-// goes through project.Store.AddTarget with scope.Scope.Enforce.
+// Package recon executes authorized reconnaissance through allowlisted tool
+// adapters (nmap, httpx, dnsx, subfinder). See tool.go for the Tool interface,
+// runner.go for the single safe-execution choke point, and service.go for
+// queue orchestration. Every execution re-enforces project scope.
 package recon
