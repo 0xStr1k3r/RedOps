@@ -87,6 +87,44 @@ CREATE TABLE IF NOT EXISTS audit_log (
 CREATE INDEX IF NOT EXISTS idx_scopes_project ON scopes(project_id);
 CREATE INDEX IF NOT EXISTS idx_targets_project ON targets(project_id);
 CREATE INDEX IF NOT EXISTS idx_timeline_project ON timeline(project_id, timestamp);
+CREATE TABLE IF NOT EXISTS recon_jobs (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  tool TEXT NOT NULL,
+  target TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  output_ref TEXT NOT NULL DEFAULT '',
+  error TEXT NOT NULL DEFAULT '',
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  finished_at TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS hosts (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  ip TEXT NOT NULL,
+  hostname TEXT NOT NULL DEFAULT '',
+  os TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  UNIQUE(project_id, ip)
+);
+CREATE TABLE IF NOT EXISTS services (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  host_ip TEXT NOT NULL,
+  port INTEGER NOT NULL,
+  protocol TEXT NOT NULL DEFAULT 'tcp',
+  state TEXT NOT NULL DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
+  product TEXT NOT NULL DEFAULT '',
+  version TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  UNIQUE(project_id, host_ip, port, protocol)
+);
+CREATE INDEX IF NOT EXISTS idx_jobs_project ON recon_jobs(project_id, status, created_at);
+CREATE INDEX IF NOT EXISTS idx_hosts_project ON hosts(project_id);
+CREATE INDEX IF NOT EXISTS idx_services_project ON services(project_id, host_ip);
 `
 	_, err := s.db.Exec(schema)
 	return err

@@ -22,3 +22,12 @@ audit_log(id PK, project_id, actor, action, target, result, created_at)
 ## Indexes
 
 `idx_scopes_project, idx_targets_project, idx_timeline_project(project_id,timestamp)`.
+`idx_jobs_project(project_id,status,created_at)`, `idx_hosts_project`, `idx_services_project(host_id)`.
+
+## Phase-2 tables
+
+```sql
+recon_jobs(id PK, project_id FK CASCADE, tool, target, status, output_ref, error, created_by, created_at, finished_at)
+hosts(id PK, project_id FK CASCADE, ip, hostname, os, source, created_at, UNIQUE(project_id,ip))
+services(id PK, project_id FK CASCADE, host_ip, port, protocol, state, name, product, version, created_at, UNIQUE(project_id,host_ip,port,protocol))
+```

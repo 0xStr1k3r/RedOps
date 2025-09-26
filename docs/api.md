@@ -42,8 +42,25 @@ POST /api/v1/projects/{id}/targets  {"value":"10.10.10.10"}
 
 GET /api/v1/projects/{id}/targets → 200 [Target]
 GET /api/v1/projects/{id}/timeline → 200 [TimelineEvent]
+```
+
+## Recon (Phase 2, scope-gated)
+
+```http
+POST /api/v1/projects/{id}/recon  {"tool":"nmap","target":"10.10.10.10"}
+→ 202 ReconJob | 403 scope denied | 400 unknown tool   # operator+
+
+GET /api/v1/projects/{id}/recon → 200 [ReconJob]
+GET /api/v1/projects/{id}/recon/{jobID} → 200 ReconJob | 404
+GET /api/v1/projects/{id}/hosts → 200 [Host]
+GET /api/v1/projects/{id}/services → 200 [Service]
+GET /api/v1/projects/{id}/assets → 200 {"hosts":[],"services":[]}
 GET /healthz → 200 {"status":"ok"}
 ```
+
+Tools: `nmap` (IP/CIDR), `httpx` (IP/domain), `dnsx`/`subfinder` (domain).
+Jobs run via `redops-worker` (polls queue, re-enforces scope at execution).
+Missing binaries fail the job with an install hint, never the server.
 
 ## Errors
 

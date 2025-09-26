@@ -1,7 +1,7 @@
 # Roadmap — RedOps phases
 
 - [x] **Phase 1 Foundation**: auth, projects, scope enforcement, timeline, audit, parser schemas, CLI+API, CI
-- [ ] **Phase 2 Recon**: `Tool` interface + adapters (nmap, httpx, dnsx, subfinder) behind `Enforce()`; Redis queue + worker
+- [x] **Phase 2 Recon**: `Tool` interface + adapters (nmap, httpx, dnsx, subfinder) behind `Enforce()`; SQLite job queue + worker; hosts/services inventory
 - [ ] **Phase 3 Enumeration**: http/ssh/smb/dns/ftp/ldap modules → structured results
 - [ ] **Phase 4 Findings**: finding store, severity/confidence workflow, CWE/CVE enrichment
 - [ ] **Phase 5 MITRE**: full enterprise matrix import, tactic dashboard

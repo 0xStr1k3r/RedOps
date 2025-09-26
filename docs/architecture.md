@@ -5,7 +5,8 @@ CLI (cobra) ──┐
               ├─→ project.Store (SQLite) ← scope.Scope.Enforce
 API (chi)  ───┘         │ timeline + audit_log
                         │
-Future: recon/enumeration/validation workers → findings → mitre → Neo4j graph
+Recon: API/CLI enqueue → recon_jobs → worker claims → Tool.Execute
+       (scope re-checked) → Parse → hosts/services upsert → evidence hash
 ```
 
 ## Request path (Phase 1)
@@ -25,6 +26,9 @@ Scope denials return **403** with reason (`outside authorized scope`,
 SQLite now, Postgres later. Table names/columns are identical so the
 migration is `pgloader` + driver swap. See `docs/database.md`.
 
+Phase-2 tables: `recon_jobs` (queued→running→done|failed queue),
+`hosts` + `services` (upserted asset inventory per project).
+
 ## Auth
 
 - Argon2id hash string `argon2id$v=19$m=..,t=..,p=..$salt$hash`
@@ -40,4 +44,11 @@ Full operation evidence (command/output capture) attaches in Phase 2+.
 ## What Phase 1 does NOT do
 
 No sockets, no subprocesses, no scanning. `pkg/nmap` only **parses** XML.
-Execution adapters arrive in Phase 2 behind the same `Enforce()` gate.
+
+## Phase 2 recon safety
+
+- One choke point: `recon.runBinary` — scope re-enforced, `LookPath`,
+  `exec.CommandContext` with timeout, argv only (never a shell), output capped.
+- Adapters declare `Supports()` per target type; mismatches rejected before spawn.
+- Ports/profile inputs validated (`^[0-9,\- ]+$`, canned profiles only).
+- Missing binaries → job `failed` with install hint; worker keeps polling.

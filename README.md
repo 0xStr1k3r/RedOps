@@ -8,14 +8,16 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 1 — Foundation (implemented)
+## Status: Phase 2 — Recon (implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
+- Recon: `Tool` adapters (nmap, httpx, dnsx, subfinder), SQLite job queue,
+  worker daemon, hosts/services inventory — every run scope-gated twice
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
-- Nmap XML parser, finding schema, MITRE subset
-- CLI (`redops`), server (`redops-api`), worker stub
+- Nmap/httpx/dnsx parsers, finding schema, MITRE subset
+- CLI (`redops`), server (`redops-api`), worker (`redops-worker`)
 - CI: tests, vet, gosec, Trivy
 
 ## Quick start (no Docker needed)
@@ -64,6 +66,28 @@ CLI equivalent (same DB file, no server):
 ./bin/redops --db redops.db target add acme 10.10.10.10
 ./bin/redops --db redops.db target add acme 8.8.8.8   # denied
 ./bin/redops --db redops.db status acme
+```
+
+## Recon (Phase 2)
+
+```bash
+# Inline (no worker needed):
+./bin/redops --db redops.db recon run acme --tool nmap --target 10.10.10.10 --profile fast
+./bin/redops --db redops.db assets acme
+
+# Queued (worker processes):
+./bin/redops --db redops.db recon run acme --tool nmap --target 10.10.10.10 --async
+REDOPS_DB=redops.db ./bin/redops-worker            # polls queue
+REDOPS_DB=redops.db REDOPS_WORKER_ONCE=1 ./bin/redops-worker  # single pass
+```
+
+API:
+
+```bash
+curl -X POST localhost:8080/api/v1/projects/$PID/recon \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"tool":"nmap","target":"10.10.10.10"}'   # 202, or 403 out-of-scope
+curl localhost:8080/api/v1/projects/$PID/assets -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Layout

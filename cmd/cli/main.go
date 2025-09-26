@@ -1,17 +1,21 @@
-// Command redops is the operator CLI. Phase 1 works directly against the
+// Command redops is the operator CLI. It works directly against the
 // local SQLite file (same file the server uses), so no server is required:
 //
 //	redops --db redops.db project create acme --scope 10.10.10.0/24
 //	redops --db redops.db target add <project-id-or-name> 10.10.10.10
+//	redops --db redops.db recon run <project> --tool nmap --target 10.10.10.10
+//	redops --db redops.db assets <project>
 //	redops --db redops.db status <project-id-or-name>
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/redops/redops/internal/project"
+	"github.com/redops/redops/internal/recon"
 )
 
 var dbPath string
@@ -147,7 +151,9 @@ func main() {
 			sc, _ := s.ListScopes(p.ID)
 			tg, _ := s.ListTargets(p.ID)
 			tl, _ := s.ListTimeline(p.ID)
-			fmt.Printf("project: %s (%s)\nscopes: %d\ntargets: %d\ntimeline events: %d\n", p.Name, p.ID, len(sc), len(tg), len(tl))
+			hosts, _ := s.ListHosts(p.ID)
+			svcs, _ := s.ListServices(p.ID)
+			fmt.Printf("project: %s (%s)\nscopes: %d\ntargets: %d\nhosts: %d\nservices: %d\ntimeline events: %d\n", p.Name, p.ID, len(sc), len(tg), len(hosts), len(svcs), len(tl))
 			for _, t := range tg {
 				fmt.Printf("  - %s\n", t.Value)
 			}
@@ -155,7 +161,97 @@ func main() {
 		},
 	}
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd)
+	reconCmd := &cobra.Command{Use: "recon", Short: "Scope-checked reconnaissance jobs"}
+	reconRun := &cobra.Command{
+		Use: "run PROJECT --tool nmap --target 10.10.10.10", Args: cobra.ExactArgs(1),
+		Short: "Enqueue a recon job and run it inline (use --async to only enqueue)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			toolName, _ := cmd.Flags().GetString("tool")
+			target, _ := cmd.Flags().GetString("target")
+			async, _ := cmd.Flags().GetBool("async")
+			ports, _ := cmd.Flags().GetString("ports")
+			profile, _ := cmd.Flags().GetString("profile")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			job, err := recon.Enqueue(context.Background(), s, p.ID, toolName, target, "cli")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("job %s queued (%s on %s)\n", job.ID, job.Tool, job.Target)
+			if async {
+				return nil
+			}
+			// Inline run for lab use (no worker daemon needed).
+			if err := recon.RunJob(context.Background(), s, job, recon.Options{Ports: ports, Profile: profile}); err != nil {
+				return fmt.Errorf("job %s failed: %w", job.ID, err)
+			}
+			fmt.Printf("job %s done\n", job.ID)
+			return nil
+		},
+	}
+	reconRun.Flags().String("tool", "nmap", "Tool: nmap|httpx|dnsx|subfinder")
+	reconRun.Flags().String("target", "", "Target (must be in scope)")
+	_ = reconRun.MarkFlagRequired("target")
+	reconRun.Flags().Bool("async", false, "Only enqueue, do not run inline")
+	reconRun.Flags().String("ports", "", "Ports allowlist, e.g. 80,443")
+	reconRun.Flags().String("profile", "", "Profile: fast|full|top100")
+	reconCmd.AddCommand(reconRun)
+	reconCmd.AddCommand(&cobra.Command{
+		Use: "list PROJECT", Args: cobra.ExactArgs(1), Short: "List recon jobs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			jobs, err := s.ListReconJobs(p.ID)
+			if err != nil {
+				return err
+			}
+			for _, j := range jobs {
+				fmt.Printf("%s\t%s\t%s\t%s\n", j.ID, j.Tool, j.Target, j.Status)
+			}
+			return nil
+		},
+	})
+	assetsCmd := &cobra.Command{
+		Use: "assets PROJECT", Args: cobra.ExactArgs(1), Short: "List discovered hosts and services",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			hosts, _ := s.ListHosts(p.ID)
+			svcs, _ := s.ListServices(p.ID)
+			fmt.Printf("hosts (%d):\n", len(hosts))
+			for _, h := range hosts {
+				fmt.Printf("  %s host=%s os=%s src=%s\n", h.IP, h.Hostname, h.OS, h.Source)
+			}
+			fmt.Printf("services (%d):\n", len(svcs))
+			for _, sv := range svcs {
+				fmt.Printf("  %s:%d/%s %s %s %s\n", sv.HostIP, sv.Port, sv.Protocol, sv.State, sv.Name, sv.Product)
+			}
+			return nil
+		},
+	}
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

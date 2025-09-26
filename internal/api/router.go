@@ -43,6 +43,12 @@ func NewRouter(cfg Config) http.Handler {
 			r.Post("/projects/{id}/targets", handleAddTarget(cfg))
 			r.Get("/projects/{id}/targets", handleListTargets(cfg))
 			r.Get("/projects/{id}/timeline", handleTimeline(cfg))
+			r.Post("/projects/{id}/recon", handleEnqueueRecon(cfg))
+			r.Get("/projects/{id}/recon", handleListRecon(cfg))
+			r.Get("/projects/{id}/recon/{jobID}", handleGetRecon(cfg))
+			r.Get("/projects/{id}/hosts", handleListHosts(cfg))
+			r.Get("/projects/{id}/services", handleListServices(cfg))
+			r.Get("/projects/{id}/assets", handleAssets(cfg))
 		})
 	})
 	return r
