@@ -125,6 +125,32 @@ CREATE TABLE IF NOT EXISTS services (
 CREATE INDEX IF NOT EXISTS idx_jobs_project ON recon_jobs(project_id, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_hosts_project ON hosts(project_id);
 CREATE INDEX IF NOT EXISTS idx_services_project ON services(project_id, host_ip);
+CREATE TABLE IF NOT EXISTS enum_jobs (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  host_ip TEXT NOT NULL,
+  port INTEGER NOT NULL,
+  module TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  output_ref TEXT NOT NULL DEFAULT '',
+  error TEXT NOT NULL DEFAULT '',
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  finished_at TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS enum_results (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  job_id TEXT NOT NULL,
+  host_ip TEXT NOT NULL,
+  port INTEGER NOT NULL,
+  module TEXT NOT NULL,
+  summary TEXT NOT NULL DEFAULT '',
+  observations_json TEXT NOT NULL DEFAULT '[]',
+  created_at TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_enumjobs_project ON enum_jobs(project_id, status, created_at);
+CREATE INDEX IF NOT EXISTS idx_enumresults_project ON enum_results(project_id, host_ip, port);
 `
 	_, err := s.db.Exec(schema)
 	return err
