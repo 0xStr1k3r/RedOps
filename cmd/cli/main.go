@@ -14,6 +14,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
 )
@@ -22,8 +23,14 @@ var dbPath string
 
 func store() (*project.Store, error) { return project.Open(dbPath) }
 
-func findProject(s *project.Store, ref string) (*project.Project, error) {
-	if p, err := s.GetProject(ref); err == nil {
+func truncObs(s string) string {
+	if len(s) > 80 {
+		return s[:80]
+	}
+	return s
+}
+
+func findProject(s *project.Store, ref string) (*project.Project, error) {	if p, err := s.GetProject(ref); err == nil {
 		return p, nil
 	}
 	list, err := s.ListProjects()
@@ -251,7 +258,68 @@ func main() {
 		},
 	}
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd)
+	enumCmd := &cobra.Command{Use: "enum", Short: "Service enumeration (scope-checked, read-only)"}
+	enumRun := &cobra.Command{
+		Use: "run PROJECT --host 10.10.10.10 --port 80 [--module http]", Args: cobra.ExactArgs(1),
+		Short: "Enumerate one service inline (auto-selects module when omitted)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			host, _ := cmd.Flags().GetString("host")
+			port, _ := cmd.Flags().GetInt("port")
+			module, _ := cmd.Flags().GetString("module")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			job, err := enumeration.Enqueue(context.Background(), s, p.ID, host, port, module, "cli")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("job %s queued (%s on %s:%d)\n", job.ID, job.Module, job.HostIP, job.Port)
+			if err := enumeration.RunJob(context.Background(), s, job, enumeration.Options{}); err != nil {
+				return fmt.Errorf("job %s failed: %w", job.ID, err)
+			}
+			fmt.Printf("job %s done\n", job.ID)
+			return nil
+		},
+	}
+	enumRun.Flags().String("host", "", "Service host (must be in scope)")
+	enumRun.Flags().Int("port", 0, "Service port")
+	enumRun.Flags().String("module", "", "Module: http|ssh-banner|dns|tcp-banner (default: auto)")
+	_ = enumRun.MarkFlagRequired("host")
+	_ = enumRun.MarkFlagRequired("port")
+	enumCmd.AddCommand(enumRun)
+	enumCmd.AddCommand(&cobra.Command{
+		Use: "results PROJECT", Args: cobra.ExactArgs(1), Short: "Show enumeration results",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			results, err := s.ListEnumResults(p.ID)
+			if err != nil {
+				return err
+			}
+			for _, r := range results {
+				fmt.Printf("== %s:%d [%s] %s\n", r.HostIP, r.Port, r.Module, r.Summary)
+				for _, o := range r.Observations {
+					fmt.Printf("   %-20s %s (%s)\n", o.Kind, truncObs(o.Detail), o.TechniqueID)
+				}
+			}
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

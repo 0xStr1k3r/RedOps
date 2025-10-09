@@ -30,4 +30,6 @@ audit_log(id PK, project_id, actor, action, target, result, created_at)
 recon_jobs(id PK, project_id FK CASCADE, tool, target, status, output_ref, error, created_by, created_at, finished_at)
 hosts(id PK, project_id FK CASCADE, ip, hostname, os, source, created_at, UNIQUE(project_id,ip))
 services(id PK, project_id FK CASCADE, host_ip, port, protocol, state, name, product, version, created_at, UNIQUE(project_id,host_ip,port,protocol))
+enum_jobs(id PK, project_id FK CASCADE, host_ip, port, module, status, output_ref, error, created_by, created_at, finished_at)
+enum_results(id PK, project_id FK CASCADE, job_id, host_ip, port, module, summary, observations_json, created_at)
 ```

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/redops/redops/internal/project"
+	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/recon"
 )
 
@@ -50,18 +51,24 @@ func main() {
 func runOnce(st *project.Store) {
 	ctx, cancel := context.WithTimeout(context.Background(), 6*time.Minute)
 	defer cancel()
-	job, err := st.ClaimNextJob()
-	if err != nil {
-		log.Printf("claim error: %v", err)
-		return
+	if job, err := st.ClaimNextJob(); err != nil {
+		log.Printf("recon claim error: %v", err)
+	} else if job != nil {
+		log.Printf("running %s on %s (recon job %s)", job.Tool, job.Target, job.ID)
+		if err := recon.RunJob(ctx, st, job, recon.Options{}); err != nil {
+			log.Printf("recon job %s failed: %v", job.ID, err)
+		} else {
+			log.Printf("recon job %s done", job.ID)
+		}
 	}
-	if job == nil {
-		return
+	if ejob, err := st.ClaimNextEnumJob(); err != nil {
+		log.Printf("enum claim error: %v", err)
+	} else if ejob != nil {
+		log.Printf("running %s on %s:%d (enum job %s)", ejob.Module, ejob.HostIP, ejob.Port, ejob.ID)
+		if err := enumeration.RunJob(ctx, st, ejob, enumeration.Options{}); err != nil {
+			log.Printf("enum job %s failed: %v", ejob.ID, err)
+		} else {
+			log.Printf("enum job %s done", ejob.ID)
+		}
 	}
-	log.Printf("running %s on %s (job %s)", job.Tool, job.Target, job.ID)
-	if err := recon.RunJob(ctx, st, job, recon.Options{}); err != nil {
-		log.Printf("job %s failed: %v", job.ID, err)
-		return
-	}
-	log.Printf("job %s done", job.ID)
 }

@@ -8,12 +8,14 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 2 — Recon (implemented)
+## Status: Phase 3 — Enumeration (implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
 - Recon: `Tool` adapters (nmap, httpx, dnsx, subfinder), SQLite job queue,
   worker daemon, hosts/services inventory — every run scope-gated twice
+- Enumeration: `http`, `ssh-banner`, `dns`, `tcp-banner` read-only modules,
+  enum queue + results store — see `docs/enumeration.md`
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
@@ -89,6 +91,16 @@ curl -X POST localhost:8080/api/v1/projects/$PID/recon \
   -d '{"tool":"nmap","target":"10.10.10.10"}'   # 202, or 403 out-of-scope
 curl localhost:8080/api/v1/projects/$PID/assets -H "Authorization: Bearer $TOKEN"
 ```
+
+## Enumeration (Phase 3, read-only)
+
+```bash
+./bin/redops --db redops.db enum run acme --host 10.10.10.10 --port 80
+./bin/redops --db redops.db enum run acme --host 10.10.10.10 --port 22 --module ssh-banner
+./bin/redops --db redops.db enum results acme
+```
+
+Details per module (observations, ATT&CK mapping, safety limits): `docs/enumeration.md`.
 
 ## Layout
 

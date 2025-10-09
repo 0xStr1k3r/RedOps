@@ -43,7 +43,7 @@ func Lookup(id string) (Technique, bool) { t, ok := byID[id]; return t, ok }
 // Deterministic rules only; LLM explanation is a later optional layer.
 func MapObservation(observation string) string {
 	switch observation {
-	case "port-open", "service-banner", "http-tech":
+	case "port-open", "service-banner", "http-tech", "http-title", "http-server", "http-status", "ssh-banner":
 		return "T1046"
 	case "host-up":
 		return "T1018"

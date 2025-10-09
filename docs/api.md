@@ -62,6 +62,20 @@ Tools: `nmap` (IP/CIDR), `httpx` (IP/domain), `dnsx`/`subfinder` (domain).
 Jobs run via `redops-worker` (polls queue, re-enforces scope at execution).
 Missing binaries fail the job with an install hint, never the server.
 
+## Enumeration (Phase 3, read-only)
+
+```http
+POST /api/v1/projects/{id}/enumerate  {"host":"10.10.10.10","port":80,"module":"http"}
+→ 202 EnumJob | 403 scope denied | 400 unknown module   # operator+, module optional (auto-match)
+
+GET /api/v1/projects/{id}/enumerate → 200 [EnumJob]
+GET /api/v1/projects/{id}/enumerate/{jobID} → 200 EnumJob | 404
+GET /api/v1/projects/{id}/enum-results → 200 [EnumResult]
+```
+
+Modules: `http`, `ssh-banner`, `dns`, `tcp-banner` (fallback).
+Full per-module docs: `docs/enumeration.md`.
+
 ## Errors
 
 ```json
