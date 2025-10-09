@@ -23,6 +23,14 @@ const (
 	ConfConfirmed = "confirmed"
 )
 
+// Lifecycle status, orthogonal to confidence.
+const (
+	StatusOpen          = "open"
+	StatusAcknowledged  = "acknowledged"
+	StatusResolved      = "resolved"
+	StatusFalsePositive = "false_positive"
+)
+
 // Finding is the normalized object for everything discovered.
 // Phase 1 defines the schema; engines populate it in later phases.
 type Finding struct {
@@ -39,6 +47,7 @@ type Finding struct {
 	CVE         string    `json:"cve,omitempty"`
 	TechniqueID string    `json:"attack_technique,omitempty"`
 	Remediation string    `json:"remediation,omitempty"`
+	Status      string    `json:"status,omitempty"`
 	Timestamp   time.Time `json:"timestamp"`
 }
 
@@ -48,6 +57,10 @@ var severities = map[string]bool{
 
 var confidences = map[string]bool{
 	ConfObserved: true, ConfPotential: true, ConfValidated: true, ConfConfirmed: true,
+}
+
+var statuses = map[string]bool{
+	StatusOpen: true, StatusAcknowledged: true, StatusResolved: true, StatusFalsePositive: true,
 }
 
 // Validate checks required fields and enums.
@@ -64,5 +77,21 @@ func (f *Finding) Validate() error {
 	if !confidences[strings.ToLower(f.Confidence)] {
 		return fmt.Errorf("invalid confidence %q", f.Confidence)
 	}
+	if f.Status != "" && !statuses[strings.ToLower(f.Status)] {
+		return fmt.Errorf("invalid status %q", f.Status)
+	}
 	return nil
+}
+
+// Normalize lowercases enums and defaults empty status to open.
+func (f *Finding) Normalize() {
+	f.Severity = strings.ToLower(strings.TrimSpace(f.Severity))
+	f.Confidence = strings.ToLower(strings.TrimSpace(f.Confidence))
+	f.Status = strings.ToLower(strings.TrimSpace(f.Status))
+	if f.Status == "" {
+		f.Status = StatusOpen
+	}
+	if f.Confidence == "" {
+		f.Confidence = ConfObserved
+	}
 }
