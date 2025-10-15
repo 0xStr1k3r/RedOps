@@ -18,15 +18,15 @@ var AllowedReconTools = map[string]bool{
 
 // ReconJob is one scope-checked tool execution.
 type ReconJob struct {
-	ID         string    `json:"id"`
-	ProjectID  string    `json:"project_id"`
-	Tool       string    `json:"tool"`
-	Target     string    `json:"target"`
-	Status     string    `json:"status"`
-	OutputRef  string    `json:"output_ref,omitempty"`
-	Error      string    `json:"error,omitempty"`
-	CreatedBy  string    `json:"created_by,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
+	ID         string     `json:"id"`
+	ProjectID  string     `json:"project_id"`
+	Tool       string     `json:"tool"`
+	Target     string     `json:"target"`
+	Status     string     `json:"status"`
+	OutputRef  string     `json:"output_ref,omitempty"`
+	Error      string     `json:"error,omitempty"`
+	CreatedBy  string     `json:"created_by,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
 }
 

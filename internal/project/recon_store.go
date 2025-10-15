@@ -30,7 +30,7 @@ func (s *Store) EnqueueReconJob(projectID, tool, target, createdBy string) (*Rec
 		return nil, fmt.Errorf("invalid target %q", target)
 	}
 	job := &ReconJob{
-		ID: projectID[:8] + "-" + uuid.NewString()[:8],
+		ID:        projectID[:8] + "-" + uuid.NewString()[:8],
 		ProjectID: projectID, Tool: tool, Target: strings.TrimSpace(target),
 		Status: JobQueued, CreatedBy: createdBy, CreatedAt: time.Now().UTC(),
 	}

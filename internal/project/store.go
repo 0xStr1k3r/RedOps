@@ -151,6 +151,27 @@ CREATE TABLE IF NOT EXISTS enum_results (
 );
 CREATE INDEX IF NOT EXISTS idx_enumjobs_project ON enum_jobs(project_id, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_enumresults_project ON enum_results(project_id, host_ip, port);
+CREATE TABLE IF NOT EXISTS findings (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  severity TEXT NOT NULL DEFAULT 'info',
+  confidence TEXT NOT NULL DEFAULT 'observed',
+  target TEXT NOT NULL DEFAULT '',
+  evidence TEXT NOT NULL DEFAULT '',
+  source TEXT NOT NULL DEFAULT '',
+  cwe TEXT NOT NULL DEFAULT '',
+  cve TEXT NOT NULL DEFAULT '',
+  technique_id TEXT NOT NULL DEFAULT '',
+  remediation TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'open',
+  dedupe_key TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL,
+  UNIQUE(project_id, dedupe_key)
+);
+CREATE INDEX IF NOT EXISTS idx_findings_project ON findings(project_id, severity, status, created_at);
 `
 	_, err := s.db.Exec(schema)
 	return err
