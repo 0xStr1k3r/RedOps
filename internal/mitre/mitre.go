@@ -20,7 +20,7 @@ var Techniques = []Technique{
 	{"T1592", "Gather Victim Host Information", "Reconnaissance", "Pre", "OS/service fingerprinting."},
 	{"T1003", "OS Credential Dumping", "Credential Access", "Windows/Linux", "LAB-ONLY simulated credential discovery."},
 	{"T1552", "Unsecured Credentials", "Credential Access", "All", "Exposed creds in files/configs (lab)."},
-	{"T1078", "Valid Accounts", "Persistence/Privilege Escalation", "All", "Use of lab-provided accounts."},
+	{"T1078", "Valid Accounts", "Persistence", "All", "Use of lab-provided accounts. Also Initial Access / Privilege Escalation / Defense Evasion."},
 	{"T1021", "Remote Services", "Lateral Movement", "All", "SMB/RDP/SSH simulation in lab."},
 	{"T1482", "Domain Trust Discovery", "Discovery", "Windows", "AD trust mapping (future)."},
 	{"T1083", "File and Directory Discovery", "Discovery", "All", "Web path/robost enumeration."},
