@@ -76,6 +76,22 @@ GET /api/v1/projects/{id}/enum-results → 200 [EnumResult]
 Modules: `http`, `ssh-banner`, `dns`, `tcp-banner` (fallback).
 Full per-module docs: `docs/enumeration.md`.
 
+## Findings (Phase 4)
+
+```http
+POST /api/v1/projects/{id}/findings  {"title":"...","severity":"high","confidence":"observed","target":"10.0.0.1:443"}
+→ 201 | 400 invalid   # operator+
+
+GET /api/v1/projects/{id}/findings?severity=high&status=open → 200 [Finding]
+GET /api/v1/projects/{id}/findings/{fid} → 200 Finding | 404
+PATCH /api/v1/projects/{id}/findings/{fid}  {"status":"acknowledged","confidence":"validated"}
+→ 200 Finding | 400 invalid | 404   # operator+
+
+POST /api/v1/projects/{id}/findings/raise → 200 {"raised": N}   # operator+, idempotent
+```
+
+Rule catalog + severity rubric: `docs/findings.md`.
+
 ## Errors
 
 ```json

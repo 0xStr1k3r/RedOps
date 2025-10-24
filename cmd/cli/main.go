@@ -13,10 +13,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"github.com/redops/redops/internal/enumeration"
+	"github.com/redops/redops/internal/findings"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
+	"github.com/spf13/cobra"
 )
 
 var dbPath string
@@ -30,7 +31,31 @@ func truncObs(s string) string {
 	return s
 }
 
-func findProject(s *project.Store, ref string) (*project.Project, error) {	if p, err := s.GetProject(ref); err == nil {
+// resolveFindingID accepts a full UUID or an unambiguous prefix (list shows short IDs).
+func resolveFindingID(s *project.Store, projectID, ref string) (string, error) {
+	list, err := s.ListFindings(projectID, project.FindingFilter{})
+	if err != nil {
+		return "", err
+	}
+	var match string
+	n := 0
+	for _, f := range list {
+		if f.ID == ref || (len(ref) >= 4 && len(f.ID) >= len(ref) && f.ID[:len(ref)] == ref) {
+			match = f.ID
+			n++
+		}
+	}
+	if n == 0 {
+		return "", fmt.Errorf("finding not found")
+	}
+	if n > 1 {
+		return "", fmt.Errorf("ambiguous finding prefix %q (%d matches)", ref, n)
+	}
+	return match, nil
+}
+
+func findProject(s *project.Store, ref string) (*project.Project, error) {
+	if p, err := s.GetProject(ref); err == nil {
 		return p, nil
 	}
 	list, err := s.ListProjects()
@@ -293,8 +318,7 @@ func main() {
 	_ = enumRun.MarkFlagRequired("host")
 	_ = enumRun.MarkFlagRequired("port")
 	enumCmd.AddCommand(enumRun)
-	enumCmd.AddCommand(&cobra.Command{
-		Use: "results PROJECT", Args: cobra.ExactArgs(1), Short: "Show enumeration results",
+	enumCmd.AddCommand(&cobra.Command{Use: "results PROJECT", Args: cobra.ExactArgs(1), Short: "Show enumeration results",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			s, err := store()
 			if err != nil {
@@ -319,7 +343,89 @@ func main() {
 		},
 	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd)
+	findingsCmd := &cobra.Command{Use: "findings", Short: "Finding management"}
+	findingsCmd.AddCommand(&cobra.Command{
+		Use: "list PROJECT [--severity low] [--status open]", Args: cobra.ExactArgs(1),
+		Short: "List findings with optional filters",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			sev, _ := cmd.Flags().GetString("severity")
+			status, _ := cmd.Flags().GetString("status")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			list, err := s.ListFindings(p.ID, project.FindingFilter{Severity: sev, Status: status})
+			if err != nil {
+				return err
+			}
+			for _, f := range list {
+				fmt.Printf("%s [%s/%s/%s] %s (%s)\n", f.ID[:8], f.Severity, f.Confidence, f.Status, f.Title, f.Target)
+			}
+			return nil
+		},
+	})
+	findingsListCmd := findingsCmd.Commands()[0]
+	findingsListCmd.Flags().String("severity", "", "Filter: info|low|medium|high|critical")
+	findingsListCmd.Flags().String("status", "", "Filter: open|acknowledged|resolved|false_positive")
+	findingsCmd.AddCommand(&cobra.Command{
+		Use: "raise PROJECT", Args: cobra.ExactArgs(1),
+		Short: "Auto-raise findings from enumeration results (idempotent)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			n, err := findings.RaiseFromEnumResults(s, p.ID, "cli")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("raised %d new finding(s)\n", n)
+			return nil
+		},
+	})
+	findingsCmd.AddCommand(&cobra.Command{
+		Use: "update PROJECT ID [--status resolved] [--confidence validated] [--severity low]", Args: cobra.ExactArgs(2),
+		Short: "Update finding workflow state",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			status, _ := cmd.Flags().GetString("status")
+			conf, _ := cmd.Flags().GetString("confidence")
+			sev, _ := cmd.Flags().GetString("severity")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			fullID, err := resolveFindingID(s, p.ID, args[1])
+			if err != nil {
+				return err
+			}
+			f, err := s.UpdateFinding(p.ID, fullID, status, conf, sev)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s [%s/%s/%s] %s\n", f.ID[:8], f.Severity, f.Confidence, f.Status, f.Title)
+			return nil
+		},
+	})
+	findingsCmd.Commands()[2].Flags().String("status", "", "open|acknowledged|resolved|false_positive")
+	findingsCmd.Commands()[2].Flags().String("confidence", "", "observed|potential|validated|confirmed")
+	findingsCmd.Commands()[2].Flags().String("severity", "", "info|low|medium|high|critical")
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

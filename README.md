@@ -8,7 +8,7 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 3 — Enumeration (implemented)
+## Status: Phase 4 — Findings (implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
@@ -16,6 +16,8 @@ timeline → report.
   worker daemon, hosts/services inventory — every run scope-gated twice
 - Enumeration: `http`, `ssh-banner`, `dns`, `tcp-banner` read-only modules,
   enum queue + results store — see `docs/enumeration.md`
+- Findings: deterministic rule engine (observations → severity/CWE/ATT&CK),
+  deduped store, status/confidence workflow — see `docs/findings.md`
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
@@ -101,6 +103,16 @@ curl localhost:8080/api/v1/projects/$PID/assets -H "Authorization: Bearer $TOKEN
 ```
 
 Details per module (observations, ATT&CK mapping, safety limits): `docs/enumeration.md`.
+
+## Findings (Phase 4)
+
+```bash
+./bin/redops --db redops.db findings raise acme
+./bin/redops --db redops.db findings list acme --severity low --status open
+./bin/redops --db redops.db findings update acme <id> --status acknowledged --confidence validated
+```
+
+Rule catalog + severity rubric: `docs/findings.md`.
 
 ## Layout
 

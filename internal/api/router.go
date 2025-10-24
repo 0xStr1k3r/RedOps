@@ -53,6 +53,11 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/projects/{id}/enumerate", handleListEnum(cfg))
 			r.Get("/projects/{id}/enumerate/{jobID}", handleGetEnum(cfg))
 			r.Get("/projects/{id}/enum-results", handleListEnumResults(cfg))
+			r.Post("/projects/{id}/findings", handleCreateFinding(cfg))
+			r.Get("/projects/{id}/findings", handleListFindings(cfg))
+			r.Get("/projects/{id}/findings/{fid}", handleGetFinding(cfg))
+			r.Patch("/projects/{id}/findings/{fid}", handlePatchFinding(cfg))
+			r.Post("/projects/{id}/findings/raise", handleRaiseFindings(cfg))
 		})
 	})
 	return r

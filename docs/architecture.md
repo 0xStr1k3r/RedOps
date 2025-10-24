@@ -9,6 +9,8 @@ Recon: API/CLI enqueue → recon_jobs → worker claims → Tool.Execute
        (scope re-checked) → Parse → hosts/services upsert → evidence hash
 Enum:  API/CLI enqueue → enum_jobs → worker claims → Module.Enumerate
        (scope re-checked, read-only) → enum_results → evidence hash
+Findings: enum_results → rule catalog → findings (deduplicated)
+       + manual operator findings → status/confidence workflow
 ```
 
 ## Request path (Phase 1)

@@ -32,4 +32,5 @@ hosts(id PK, project_id FK CASCADE, ip, hostname, os, source, created_at, UNIQUE
 services(id PK, project_id FK CASCADE, host_ip, port, protocol, state, name, product, version, created_at, UNIQUE(project_id,host_ip,port,protocol))
 enum_jobs(id PK, project_id FK CASCADE, host_ip, port, module, status, output_ref, error, created_by, created_at, finished_at)
 enum_results(id PK, project_id FK CASCADE, job_id, host_ip, port, module, summary, observations_json, created_at)
+findings(id PK, project_id FK CASCADE, title, description, severity, confidence, target, evidence, source, cwe, cve, technique_id, remediation, status, dedupe_key UNIQUE per project, created_at, updated_at)
 ```
