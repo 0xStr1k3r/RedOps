@@ -92,6 +92,16 @@ POST /api/v1/projects/{id}/findings/raise → 200 {"raised": N}   # operator+, i
 
 Rule catalog + severity rubric: `docs/findings.md`.
 
+## MITRE ATT&CK (Phase 5)
+
+```http
+GET /api/v1/mitre/tactics → 200 [Tactic]                    # public
+GET /api/v1/mitre/techniques[?tactic=Discovery] → 200 [Technique]  # public
+GET /api/v1/projects/{id}/techniques → 200 Coverage          # auth
+```
+
+Matrix + coverage model: `docs/mitre.md`.
+
 ## Errors
 
 ```json

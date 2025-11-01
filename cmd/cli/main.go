@@ -15,6 +15,7 @@ import (
 
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
+	"github.com/redops/redops/internal/mitre"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
 	"github.com/spf13/cobra"
@@ -29,6 +30,18 @@ func truncObs(s string) string {
 		return s[:80]
 	}
 	return s
+}
+
+// shortJoin renders source lists compactly for CLI tables.
+func shortJoin(ss []string) string {
+	out := ""
+	for i, s := range ss {
+		if i > 0 {
+			out += ","
+		}
+		out += s
+	}
+	return out
 }
 
 // resolveFindingID accepts a full UUID or an unambiguous prefix (list shows short IDs).
@@ -425,7 +438,63 @@ func main() {
 	findingsCmd.Commands()[2].Flags().String("confidence", "", "observed|potential|validated|confirmed")
 	findingsCmd.Commands()[2].Flags().String("severity", "", "info|low|medium|high|critical")
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd)
+	mitreCmd := &cobra.Command{Use: "mitre", Short: "ATT&CK matrix and coverage"}
+	mitreCmd.AddCommand(&cobra.Command{
+		Use: "tactics", Short: "List the 14 enterprise tactics",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			for _, t := range mitre.Tactics {
+				fmt.Printf("%s\t%s\n", t.ID, t.Name)
+			}
+			return nil
+		},
+	})
+	mitreCmd.AddCommand(&cobra.Command{
+		Use: "techniques [--tactic Discovery]", Short: "List techniques, optionally filtered by tactic",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			tactic, _ := cmd.Flags().GetString("tactic")
+			list := mitre.Techniques
+			if tactic != "" {
+				list = mitre.TechniquesByTactic(tactic)
+			}
+			for _, t := range list {
+				fmt.Printf("%s\t%s\t%s\n", t.ID, t.Tactic, t.Name)
+			}
+			return nil
+		},
+	})
+	mitreTechniquesCmd := mitreCmd.Commands()[1]
+	mitreTechniquesCmd.Flags().String("tactic", "", "Filter by tactic name")
+	mitreCmd.AddCommand(&cobra.Command{
+		Use: "coverage PROJECT", Args: cobra.ExactArgs(1), Short: "Show ATT&CK coverage for a project",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			cov, err := mitre.ProjectCoverage(s, p.ID)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("coverage: %d/%d techniques\n", cov.Seen, cov.Total)
+			for _, tac := range cov.Tactics {
+				if tac.Seen == 0 {
+					continue
+				}
+				fmt.Printf("== %s (%d/%d)\n", tac.Tactic, tac.Seen, tac.Total)
+				for _, h := range tac.Techniques {
+					fmt.Printf("   %s %s x%d [%s]\n", h.ID, h.Name, h.Count, shortJoin(h.Sources))
+				}
+			}
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

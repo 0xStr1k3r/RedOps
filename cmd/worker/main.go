@@ -9,8 +9,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/enumeration"
+	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
 )
 

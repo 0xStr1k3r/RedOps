@@ -19,7 +19,7 @@ type Config struct {
 	TokenTTL  time.Duration
 }
 
-// NewRouter builds the Phase 1 REST API. See docs/api.md.
+// NewRouter builds the RedOps REST API. See docs/api.md.
 func NewRouter(cfg Config) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.RealIP, middleware.Recoverer)
@@ -32,6 +32,9 @@ func NewRouter(cfg Config) http.Handler {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/auth/register", handleRegister(cfg))
 		r.Post("/auth/login", handleLogin(cfg))
+		// Static ATT&CK reference is public; per-project coverage needs auth.
+		r.Get("/mitre/tactics", handleMitreTactics(cfg))
+		r.Get("/mitre/techniques", handleMitreTechniques(cfg))
 
 		r.Group(func(r chi.Router) {
 			r.Use(requireAuth(cfg))
@@ -58,6 +61,7 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/projects/{id}/findings/{fid}", handleGetFinding(cfg))
 			r.Patch("/projects/{id}/findings/{fid}", handlePatchFinding(cfg))
 			r.Post("/projects/{id}/findings/raise", handleRaiseFindings(cfg))
+			r.Get("/projects/{id}/techniques", handleProjectTechniques(cfg))
 		})
 	})
 	return r

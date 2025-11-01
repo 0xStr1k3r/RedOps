@@ -70,9 +70,9 @@ func TestValidateOptions(t *testing.T) {
 // fakeTool lets RunJob be tested without binaries.
 type fakeTool struct{ out []byte }
 
-func (f fakeTool) Name() string        { return "faketool" }
-func (f fakeTool) Binary() string      { return "faketool" }
-func (f fakeTool) Description() string { return "test" }
+func (f fakeTool) Name() string                  { return "faketool" }
+func (f fakeTool) Binary() string                { return "faketool" }
+func (f fakeTool) Description() string           { return "test" }
 func (f fakeTool) Supports(scope.EntryType) bool { return true }
 func (f fakeTool) Execute(context.Context, *scope.Scope, string, Options) ([]byte, error) {
 	return f.out, nil

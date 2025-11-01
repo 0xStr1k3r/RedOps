@@ -20,8 +20,10 @@ type HTTPModule struct{}
 
 func init() { Register(HTTPModule{}) }
 
-func (HTTPModule) Name() string        { return "http" }
-func (HTTPModule) Description() string { return "Web metadata: title, server, tech, headers, TLS, robots, sitemap (T1594/T1046)" }
+func (HTTPModule) Name() string { return "http" }
+func (HTTPModule) Description() string {
+	return "Web metadata: title, server, tech, headers, TLS, robots, sitemap (T1594/T1046)"
+}
 
 func (HTTPModule) Handles(svc ServiceRef) bool {
 	if svc.Port == 80 || svc.Port == 443 || svc.Port == 8080 || svc.Port == 8000 || svc.Port == 8443 {
@@ -53,8 +55,8 @@ func (HTTPModule) Enumerate(ctx context.Context, sc *scope.Scope, svc ServiceRef
 	client := &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
-			DialContext: (&net.Dialer{Timeout: 8 * time.Second}).DialContext,
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // lab metadata only, never send creds
+			DialContext:       (&net.Dialer{Timeout: 8 * time.Second}).DialContext,
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // lab metadata only, never send creds
 			DisableKeepAlives: true,
 		},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

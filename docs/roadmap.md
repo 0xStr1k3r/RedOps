@@ -4,7 +4,7 @@
 - [x] **Phase 2 Recon**: `Tool` interface + adapters (nmap, httpx, dnsx, subfinder) behind `Enforce()`; SQLite job queue + worker; hosts/services inventory
 - [x] **Phase 3 Enumeration**: http/ssh-banner/dns/tcp-banner modules → structured observations (see docs/enumeration.md)
 - [x] **Phase 4 Findings**: finding store, severity/confidence/status workflow, deterministic rule engine from enum observations (see docs/findings.md)
-- [ ] **Phase 5 MITRE**: full enterprise matrix import, tactic dashboard
+- [x] **Phase 5 MITRE**: embedded enterprise matrix (101 techniques), tactic coverage dashboard from findings+enum+recon (see docs/mitre.md)
 - [ ] **Phase 6 Neo4j**: asset/relationship graph sync from Postgres
 - [ ] **Phase 7 Attack paths**: BFS with preconditions, states observed→potential→validated→confirmed, scoring
 - [ ] **Phase 8 Validation**: lab-only safe checks (headers, SMB guest, default creds on lab fixtures)

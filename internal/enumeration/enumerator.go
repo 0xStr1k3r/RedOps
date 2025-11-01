@@ -19,8 +19,8 @@ type ServiceRef struct {
 
 // Observation is one structured data point with its ATT&CK mapping.
 type Observation struct {
-	Kind        string `json:"kind"`        // e.g. http-title, ssh-banner
-	Detail      string `json:"detail"`      // short human-readable value
+	Kind        string `json:"kind"`         // e.g. http-title, ssh-banner
+	Detail      string `json:"detail"`       // short human-readable value
 	TechniqueID string `json:"technique_id"` // e.g. T1046
 }
 
