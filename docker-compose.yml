@@ -1,4 +1,6 @@
-# Phase 1: API only. Postgres/Neo4j/Redis join in Phase 6 (see deployments/).
+# RedOps services. Default profile: API only (SQLite, no extra infra).
+# Graph profile: + Neo4j for attack-graph sync/visualization.
+#   docker compose --profile graph up -d
 services:
   redops-api:
     build: .
@@ -7,9 +9,27 @@ services:
     environment:
       REDOPS_DB: /data/redops.db
       REDOPS_JWT_SECRET: ${REDOPS_JWT_SECRET:?set a 32+ char secret in .env}
+      REDOPS_NEO4J_URI: ${REDOPS_NEO4J_URI:-}
+      REDOPS_NEO4J_USER: ${REDOPS_NEO4J_USER:-neo4j}
+      REDOPS_NEO4J_PASS: ${REDOPS_NEO4J_PASS:-}
     volumes:
       - redops-data:/data
     restart: unless-stopped
 
+  neo4j:
+    image: neo4j:5-community
+    profiles: ["graph"]
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:?set neo4j/<password> in .env to enable the graph profile}
+      NEO4J_dbms_memory_heap_max__size: 512M
+      NEO4J_dbms_memory_pagecache_size: 256M
+    volumes:
+      - neo4j-data:/data
+    restart: unless-stopped
+
 volumes:
   redops-data:
+  neo4j-data:
