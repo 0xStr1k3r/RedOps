@@ -102,6 +102,17 @@ GET /api/v1/projects/{id}/techniques → 200 Coverage          # auth
 
 Matrix + coverage model: `docs/mitre.md`.
 
+## Attack graph (Phase 6, offline-first)
+
+```http
+GET /api/v1/projects/{id}/graph → 200 {nodes, edges, stats}   # auth
+GET /api/v1/projects/{id}/graph/cypher → 200 text/plain        # auth
+POST /api/v1/projects/{id}/graph/sync → 200 {synced_nodes, synced_edges}  # operator+
+  → 501 neo4j unconfigured | 502 neo4j unreachable
+```
+
+Model + Cypher recipes: `docs/attackgraph.md`.
+
 ## Errors
 
 ```json

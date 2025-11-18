@@ -37,6 +37,7 @@ no payloads, no persistence, no EDR bypass**.
 
 - `REDOPS_JWT_SECRET`: ≥32 chars, from env or vault. Never commit.
 - DB file (`redops.db`) contains password hashes + audit log: restrict to `0600`.
+- Neo4j password via `NEO4J_AUTH`/`REDOPS_NEO4J_PASS` env only; the Browser (7474) is never exposed beyond localhost in the provided compose.
 - Postgres/Redis passwords (Phase 6 compose) come from `.env`, not git.
 
 ## 5. Reporting vulnerabilities in RedOps

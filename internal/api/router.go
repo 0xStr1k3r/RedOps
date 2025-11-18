@@ -62,6 +62,9 @@ func NewRouter(cfg Config) http.Handler {
 			r.Patch("/projects/{id}/findings/{fid}", handlePatchFinding(cfg))
 			r.Post("/projects/{id}/findings/raise", handleRaiseFindings(cfg))
 			r.Get("/projects/{id}/techniques", handleProjectTechniques(cfg))
+			r.Get("/projects/{id}/graph", handleGraphJSON(cfg))
+			r.Get("/projects/{id}/graph/cypher", handleGraphCypher(cfg))
+			r.Post("/projects/{id}/graph/sync", handleGraphSync(cfg))
 		})
 	})
 	return r

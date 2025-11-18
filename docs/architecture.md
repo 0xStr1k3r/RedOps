@@ -12,6 +12,7 @@ Enum:  API/CLI enqueue → enum_jobs → worker claims → Module.Enumerate
 Findings: enum_results → rule catalog → findings (deduplicated)
        + manual operator findings → status/confidence workflow
 ATT&CK: findings + enum observations + recon jobs → per-tactic coverage
+Graph:  store → in-memory graph → JSON/Cypher/DOT, optional Neo4j MERGE sync
 ```
 
 ## Request path (Phase 1)

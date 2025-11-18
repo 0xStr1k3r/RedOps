@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
 	"github.com/redops/redops/internal/mitre"
@@ -494,7 +495,67 @@ func main() {
 		},
 	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd)
+	graphCmd := &cobra.Command{Use: "graph", Short: "Attack graph (offline-first, optional Neo4j sync)"}
+	graphCmd.AddCommand(&cobra.Command{
+		Use: "show PROJECT [--format json|cypher|dot]", Args: cobra.ExactArgs(1),
+		Short: "Print the assessment graph",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			format, _ := cmd.Flags().GetString("format")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			g, err := attackgraph.Build(s, p.ID)
+			if err != nil {
+				return err
+			}
+			switch format {
+			case "cypher":
+				fmt.Println(attackgraph.ToCypher(g))
+			case "dot":
+				fmt.Println(attackgraph.ToDOT(g))
+			default:
+				fmt.Printf("nodes=%d edges=%d\n", len(g.Nodes), len(g.Edges))
+				for kind, n := range g.Stats() {
+					fmt.Printf("  %s: %d\n", kind, n)
+				}
+			}
+			return nil
+		},
+	})
+	graphCmd.Commands()[0].Flags().String("format", "summary", "json|cypher|dot (default: summary)")
+	graphCmd.AddCommand(&cobra.Command{
+		Use: "sync PROJECT", Args: cobra.ExactArgs(1),
+		Short: "Push the graph to Neo4j (needs REDOPS_NEO4J_URI/USER/PASS)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			g, err := attackgraph.Build(s, p.ID)
+			if err != nil {
+				return err
+			}
+			uri, user, pass := attackgraph.ConfigFromEnv()
+			if err := attackgraph.Sync(context.Background(), uri, user, pass, g); err != nil {
+				return err
+			}
+			fmt.Printf("synced %d nodes, %d edges to %s\n", len(g.Nodes), len(g.Edges), uri)
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
