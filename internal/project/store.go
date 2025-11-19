@@ -172,6 +172,19 @@ CREATE TABLE IF NOT EXISTS findings (
   UNIQUE(project_id, dedupe_key)
 );
 CREATE INDEX IF NOT EXISTS idx_findings_project ON findings(project_id, severity, status, created_at);
+CREATE TABLE IF NOT EXISTS attack_paths (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  nodes_json TEXT NOT NULL DEFAULT '[]',
+  length INTEGER NOT NULL DEFAULT 0,
+  risk INTEGER NOT NULL DEFAULT 0,
+  confidence TEXT NOT NULL DEFAULT 'observed',
+  techniques TEXT NOT NULL DEFAULT '',
+  objective TEXT NOT NULL DEFAULT '',
+  privileges TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_attackpaths_project ON attack_paths(project_id, risk DESC);
 `
 	_, err := s.db.Exec(schema)
 	return err
