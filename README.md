@@ -8,7 +8,7 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 6 — Attack graph (implemented)
+## Status: Phase 7 — Attack paths (implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
@@ -20,6 +20,7 @@ timeline → report.
   deduped store, status/confidence workflow — see `docs/findings.md`
 - MITRE: embedded matrix (101 techniques), per-project tactic coverage — see `docs/mitre.md`
 - Graph: offline-first attack graph (JSON/Cypher/DOT) + Neo4j MERGE sync — see `docs/attackgraph.md`
+- Paths: BFS attack paths with risk scoring, observed-only + confirm — see `docs/attackpaths.md`
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
@@ -130,6 +131,14 @@ Rule catalog + severity rubric: `docs/findings.md`.
 ./bin/redops --db redops.db graph show acme --format cypher
 export REDOPS_NEO4J_URI=bolt://127.0.0.1:7687 REDOPS_NEO4J_USER=neo4j REDOPS_NEO4J_PASS=...
 ./bin/redops --db redops.db graph sync acme
+```
+
+## Attack paths (Phase 7)
+
+```bash
+./bin/redops --db redops.db paths generate acme
+./bin/redops --db redops.db paths list acme --min-risk 50
+./bin/redops --db redops.db paths confirm acme <id> --confidence validated
 ```
 
 ## Layout

@@ -6,7 +6,7 @@
 - [x] **Phase 4 Findings**: finding store, severity/confidence/status workflow, deterministic rule engine from enum observations (see docs/findings.md)
 - [x] **Phase 5 MITRE**: embedded enterprise matrix (101 techniques), tactic coverage dashboard from findings+enum+recon (see docs/mitre.md)
 - [x] **Phase 6 Neo4j**: offline-first attack graph (JSON/Cypher/DOT) + MERGE sync to Neo4j 5, verified live (see docs/attackgraph.md)
-- [ ] **Phase 7 Attack paths**: BFS with preconditions, states observed→potential→validated→confirmed, scoring
+- [x] **Phase 7 Attack paths**: BFS over the graph, risk scoring, observed/potential only + operator confirm (see docs/attackpaths.md)
 - [ ] **Phase 8 Validation**: lab-only safe checks (headers, SMB guest, default creds on lab fixtures)
 - [ ] **Phase 9 Evidence**: command/output capture + screenshots + hash chain
 - [ ] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage

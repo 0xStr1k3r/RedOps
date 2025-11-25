@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
@@ -43,6 +44,29 @@ func shortJoin(ss []string) string {
 		out += s
 	}
 	return out
+}
+
+// resolvePathID accepts a full UUID or an unambiguous prefix.
+func resolvePathID(s *project.Store, projectID, ref string) (string, error) {
+	list, err := s.ListAttackPaths(projectID, 0)
+	if err != nil {
+		return "", err
+	}
+	var match string
+	n := 0
+	for _, p := range list {
+		if p.ID == ref || (len(ref) >= 4 && len(p.ID) >= len(ref) && p.ID[:len(ref)] == ref) {
+			match = p.ID
+			n++
+		}
+	}
+	if n == 0 {
+		return "", fmt.Errorf("attack path not found")
+	}
+	if n > 1 {
+		return "", fmt.Errorf("ambiguous path prefix %q (%d matches)", ref, n)
+	}
+	return match, nil
 }
 
 // resolveFindingID accepts a full UUID or an unambiguous prefix (list shows short IDs).
@@ -358,7 +382,7 @@ func main() {
 	})
 
 	findingsCmd := &cobra.Command{Use: "findings", Short: "Finding management"}
-	findingsCmd.AddCommand(&cobra.Command{
+	findingsList := &cobra.Command{
 		Use: "list PROJECT [--severity low] [--status open]", Args: cobra.ExactArgs(1),
 		Short: "List findings with optional filters",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -382,10 +406,10 @@ func main() {
 			}
 			return nil
 		},
-	})
-	findingsListCmd := findingsCmd.Commands()[0]
-	findingsListCmd.Flags().String("severity", "", "Filter: info|low|medium|high|critical")
-	findingsListCmd.Flags().String("status", "", "Filter: open|acknowledged|resolved|false_positive")
+	}
+	findingsList.Flags().String("severity", "", "Filter: info|low|medium|high|critical")
+	findingsList.Flags().String("status", "", "Filter: open|acknowledged|resolved|false_positive")
+	findingsCmd.AddCommand(findingsList)
 	findingsCmd.AddCommand(&cobra.Command{
 		Use: "raise PROJECT", Args: cobra.ExactArgs(1),
 		Short: "Auto-raise findings from enumeration results (idempotent)",
@@ -407,7 +431,7 @@ func main() {
 			return nil
 		},
 	})
-	findingsCmd.AddCommand(&cobra.Command{
+	findingsUpdate := &cobra.Command{
 		Use: "update PROJECT ID [--status resolved] [--confidence validated] [--severity low]", Args: cobra.ExactArgs(2),
 		Short: "Update finding workflow state",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -434,10 +458,11 @@ func main() {
 			fmt.Printf("%s [%s/%s/%s] %s\n", f.ID[:8], f.Severity, f.Confidence, f.Status, f.Title)
 			return nil
 		},
-	})
-	findingsCmd.Commands()[2].Flags().String("status", "", "open|acknowledged|resolved|false_positive")
-	findingsCmd.Commands()[2].Flags().String("confidence", "", "observed|potential|validated|confirmed")
-	findingsCmd.Commands()[2].Flags().String("severity", "", "info|low|medium|high|critical")
+	}
+	findingsUpdate.Flags().String("status", "", "open|acknowledged|resolved|false_positive")
+	findingsUpdate.Flags().String("confidence", "", "observed|potential|validated|confirmed")
+	findingsUpdate.Flags().String("severity", "", "info|low|medium|high|critical")
+	findingsCmd.AddCommand(findingsUpdate)
 
 	mitreCmd := &cobra.Command{Use: "mitre", Short: "ATT&CK matrix and coverage"}
 	mitreCmd.AddCommand(&cobra.Command{
@@ -449,7 +474,7 @@ func main() {
 			return nil
 		},
 	})
-	mitreCmd.AddCommand(&cobra.Command{
+	mitreTechniques := &cobra.Command{
 		Use: "techniques [--tactic Discovery]", Short: "List techniques, optionally filtered by tactic",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			tactic, _ := cmd.Flags().GetString("tactic")
@@ -462,9 +487,9 @@ func main() {
 			}
 			return nil
 		},
-	})
-	mitreTechniquesCmd := mitreCmd.Commands()[1]
-	mitreTechniquesCmd.Flags().String("tactic", "", "Filter by tactic name")
+	}
+	mitreTechniques.Flags().String("tactic", "", "Filter by tactic name")
+	mitreCmd.AddCommand(mitreTechniques)
 	mitreCmd.AddCommand(&cobra.Command{
 		Use: "coverage PROJECT", Args: cobra.ExactArgs(1), Short: "Show ATT&CK coverage for a project",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -496,7 +521,7 @@ func main() {
 	})
 
 	graphCmd := &cobra.Command{Use: "graph", Short: "Attack graph (offline-first, optional Neo4j sync)"}
-	graphCmd.AddCommand(&cobra.Command{
+	graphShow := &cobra.Command{
 		Use: "show PROJECT [--format json|cypher|dot]", Args: cobra.ExactArgs(1),
 		Short: "Print the assessment graph",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -527,8 +552,9 @@ func main() {
 			}
 			return nil
 		},
-	})
-	graphCmd.Commands()[0].Flags().String("format", "summary", "json|cypher|dot (default: summary)")
+	}
+	graphShow.Flags().String("format", "summary", "json|cypher|dot (default: summary)")
+	graphCmd.AddCommand(graphShow)
 	graphCmd.AddCommand(&cobra.Command{
 		Use: "sync PROJECT", Args: cobra.ExactArgs(1),
 		Short: "Push the graph to Neo4j (needs REDOPS_NEO4J_URI/USER/PASS)",
@@ -555,7 +581,81 @@ func main() {
 		},
 	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd)
+	pathsCmd := &cobra.Command{Use: "paths", Short: "Attack path analysis"}
+	pathsCmd.AddCommand(&cobra.Command{
+		Use: "generate PROJECT", Args: cobra.ExactArgs(1), Short: "Recompute attack paths from the current graph",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			n, err := attack.Generate(context.Background(), s, p.ID, "cli", attack.Options{})
+			if err != nil {
+				return err
+			}
+			fmt.Printf("generated %d attack path(s)\n", n)
+			return nil
+		},
+	})
+	pathsList := &cobra.Command{
+		Use: "list PROJECT [--min-risk 50]", Args: cobra.ExactArgs(1), Short: "List attack paths by risk",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			minRisk, _ := cmd.Flags().GetInt("min-risk")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			list, err := s.ListAttackPaths(p.ID, minRisk)
+			if err != nil {
+				return err
+			}
+			for _, path := range list {
+				fmt.Printf("%s risk=%d conf=%s len=%d tech=%s\n  %s\n", path.ID[:8], path.Risk, path.Confidence, path.Length, path.Techniques, path.Objective)
+			}
+			return nil
+		},
+	}
+	pathsList.Flags().Int("min-risk", 0, "Minimum risk 0-100")
+	pathsCmd.AddCommand(pathsList)
+	pathsConfirm := &cobra.Command{
+		Use: "confirm PROJECT ID --confidence validated", Args: cobra.ExactArgs(2), Short: "Promote path confidence after verification",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			conf, _ := cmd.Flags().GetString("confidence")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			fullID, err := resolvePathID(s, p.ID, args[1])
+			if err != nil {
+				return err
+			}
+			updated, err := s.ConfirmAttackPath(p.ID, fullID, conf, "cli")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("%s now %s\n", updated.ID[:8], updated.Confidence)
+			return nil
+		},
+	}
+	pathsConfirm.Flags().String("confidence", "", "validated|confirmed")
+	pathsCmd.AddCommand(pathsConfirm)
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

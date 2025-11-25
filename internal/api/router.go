@@ -65,6 +65,10 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/projects/{id}/graph", handleGraphJSON(cfg))
 			r.Get("/projects/{id}/graph/cypher", handleGraphCypher(cfg))
 			r.Post("/projects/{id}/graph/sync", handleGraphSync(cfg))
+			r.Post("/projects/{id}/attack-paths/generate", handleGeneratePaths(cfg))
+			r.Get("/projects/{id}/attack-paths", handleListPaths(cfg))
+			r.Get("/projects/{id}/attack-paths/{pathID}", handleGetPath(cfg))
+			r.Post("/projects/{id}/attack-paths/{pathID}/confirm", handleConfirmPath(cfg))
 		})
 	})
 	return r

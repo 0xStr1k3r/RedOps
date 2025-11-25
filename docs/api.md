@@ -113,6 +113,18 @@ POST /api/v1/projects/{id}/graph/sync → 200 {synced_nodes, synced_edges}  # op
 
 Model + Cypher recipes: `docs/attackgraph.md`.
 
+## Attack paths (Phase 7, observed facts only)
+
+```http
+POST /api/v1/projects/{id}/attack-paths/generate → 200 {generated}  # operator+
+GET /api/v1/projects/{id}/attack-paths[?min_risk=50] → 200 [Path]
+GET /api/v1/projects/{id}/attack-paths/{pathID} → 200 Path | 404
+POST /api/v1/projects/{id}/attack-paths/{pathID}/confirm {"confidence":"validated"}
+→ 200 Path | 400   # operator+, upgrades only
+```
+
+Algorithm + scoring: `docs/attackpaths.md`.
+
 ## Errors
 
 ```json
