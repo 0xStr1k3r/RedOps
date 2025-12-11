@@ -125,6 +125,16 @@ POST /api/v1/projects/{id}/attack-paths/{pathID}/confirm {"confidence":"validate
 
 Algorithm + scoring: `docs/attackpaths.md`.
 
+## Validation (Phase 8, read-only)
+
+```http
+GET /api/v1/validators → 200 [{name, description}]   # auth
+POST /api/v1/projects/{id}/findings/{fid}/validate → 200 {results, promoted}  # operator+
+GET /api/v1/projects/{id}/findings/{fid}/validations → 200 [ValidationRun]
+```
+
+Validator catalog + safety rules: `docs/validation.md`.
+
 ## Errors
 
 ```json

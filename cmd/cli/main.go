@@ -20,6 +20,7 @@ import (
 	"github.com/redops/redops/internal/mitre"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
+	"github.com/redops/redops/internal/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -655,7 +656,46 @@ func main() {
 	pathsConfirm.Flags().String("confidence", "", "validated|confirmed")
 	pathsCmd.AddCommand(pathsConfirm)
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd)
+	validateCmd := &cobra.Command{Use: "validate", Short: "Read-only finding validation (lab-safe)"}
+	validateCmd.AddCommand(&cobra.Command{
+		Use: "finding PROJECT ID", Args: cobra.ExactArgs(2), Short: "Re-observe finding evidence, promote to validated on confirm",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			fullID, err := resolveFindingID(s, p.ID, args[1])
+			if err != nil {
+				return err
+			}
+			results, promoted, err := validation.ValidateFinding(context.Background(), s, p.ID, fullID, "cli", validation.Options{})
+			if err != nil {
+				return err
+			}
+			for _, r := range results {
+				fmt.Printf("%s confirmed=%v: %s\n", r.Validator, r.Confirmed, r.Detail)
+			}
+			fmt.Printf("promoted=%v\n", promoted)
+			return nil
+		},
+	})
+	validateCmd.AddCommand(&cobra.Command{
+		Use: "validators", Short: "List available validators",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			for _, name := range validation.List() {
+				v, _ := validation.Get(name)
+				fmt.Printf("%s\t%s\n", v.Name(), v.Description())
+			}
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

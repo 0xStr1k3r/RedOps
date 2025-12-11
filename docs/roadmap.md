@@ -7,7 +7,7 @@
 - [x] **Phase 5 MITRE**: embedded enterprise matrix (101 techniques), tactic coverage dashboard from findings+enum+recon (see docs/mitre.md)
 - [x] **Phase 6 Neo4j**: offline-first attack graph (JSON/Cypher/DOT) + MERGE sync to Neo4j 5, verified live (see docs/attackgraph.md)
 - [x] **Phase 7 Attack paths**: BFS over the graph, risk scoring, observed/potential only + operator confirm (see docs/attackpaths.md)
-- [ ] **Phase 8 Validation**: lab-only safe checks (headers, SMB guest, default creds on lab fixtures)
+- [x] **Phase 8 Validation**: read-only validators (headers/robots/interface/version/TLS/SSH) promoting findings to validated (see docs/validation.md)
 - [ ] **Phase 9 Evidence**: command/output capture + screenshots + hash chain
 - [ ] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage
 - [ ] **Phase 11 Adversary emulation**: scripted scenarios (web-to-admin, internal) with detection hooks

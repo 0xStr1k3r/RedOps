@@ -185,6 +185,17 @@ CREATE TABLE IF NOT EXISTS attack_paths (
   created_at TIMESTAMP NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_attackpaths_project ON attack_paths(project_id, risk DESC);
+CREATE TABLE IF NOT EXISTS validation_runs (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  finding_id TEXT NOT NULL,
+  validator TEXT NOT NULL,
+  success BOOLEAN NOT NULL DEFAULT 0,
+  detail TEXT NOT NULL DEFAULT '',
+  actor TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_validation_runs ON validation_runs(project_id, finding_id, created_at);
 `
 	_, err := s.db.Exec(schema)
 	return err

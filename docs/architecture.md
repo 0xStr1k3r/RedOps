@@ -15,6 +15,7 @@ ATT&CK: findings + enum observations + recon jobs → per-tactic coverage
 Graph:  store → in-memory graph → JSON/Cypher/DOT, optional Neo4j MERGE sync
 Paths:  BFS entry→finding(+technique) → risk score → observed/potential,
         operator confirm to validated/confirmed
+Validation: finding → matching read-only validator → confirm → validated
 ```
 
 ## Request path (Phase 1)

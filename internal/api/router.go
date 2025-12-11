@@ -69,6 +69,9 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/projects/{id}/attack-paths", handleListPaths(cfg))
 			r.Get("/projects/{id}/attack-paths/{pathID}", handleGetPath(cfg))
 			r.Post("/projects/{id}/attack-paths/{pathID}/confirm", handleConfirmPath(cfg))
+			r.Get("/validators", handleListValidators(cfg))
+			r.Post("/projects/{id}/findings/{fid}/validate", handleValidateFinding(cfg))
+			r.Get("/projects/{id}/findings/{fid}/validations", handleListValidationRuns(cfg))
 		})
 	})
 	return r
