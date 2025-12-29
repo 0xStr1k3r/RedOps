@@ -196,6 +196,22 @@ CREATE TABLE IF NOT EXISTS validation_runs (
   created_at TIMESTAMP NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_validation_runs ON validation_runs(project_id, finding_id, created_at);
+CREATE TABLE IF NOT EXISTS evidence (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  timestamp TIMESTAMP NOT NULL,
+  operator TEXT NOT NULL DEFAULT '',
+  target TEXT NOT NULL DEFAULT '',
+  action TEXT NOT NULL DEFAULT '',
+  command TEXT NOT NULL DEFAULT '',
+  output_ref TEXT NOT NULL DEFAULT '',
+  technique TEXT NOT NULL DEFAULT '',
+  finding_id TEXT NOT NULL DEFAULT '',
+  prev_hash TEXT NOT NULL DEFAULT '',
+  hash TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_evidence_project ON evidence(project_id, created_at);
 `
 	_, err := s.db.Exec(schema)
 	return err
