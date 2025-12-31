@@ -8,7 +8,7 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 8 — Validation (implemented)
+## Status: Phase 9 — Evidence (implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
@@ -22,6 +22,7 @@ timeline → report.
 - Graph: offline-first attack graph (JSON/Cypher/DOT) + Neo4j MERGE sync — see `docs/attackgraph.md`
 - Paths: BFS attack paths with risk scoring, observed-only + confirm — see `docs/attackpaths.md`
 - Validation: read-only validators promoting findings to validated — see `docs/validation.md`
+- Evidence: hash-chained operation ledger + verify — see `docs/evidence.md`
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
@@ -147,6 +148,13 @@ export REDOPS_NEO4J_URI=bolt://127.0.0.1:7687 REDOPS_NEO4J_USER=neo4j REDOPS_NEO
 ```bash
 ./bin/redops --db redops.db validate validators
 ./bin/redops --db redops.db validate finding acme <id>
+```
+
+## Evidence (Phase 9)
+
+```bash
+./bin/redops --db redops.db evidence list acme
+./bin/redops --db redops.db evidence verify acme
 ```
 
 ## Layout

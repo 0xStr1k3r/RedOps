@@ -8,7 +8,7 @@
 - [x] **Phase 6 Neo4j**: offline-first attack graph (JSON/Cypher/DOT) + MERGE sync to Neo4j 5, verified live (see docs/attackgraph.md)
 - [x] **Phase 7 Attack paths**: BFS over the graph, risk scoring, observed/potential only + operator confirm (see docs/attackpaths.md)
 - [x] **Phase 8 Validation**: read-only validators (headers/robots/interface/version/TLS/SSH) promoting findings to validated (see docs/validation.md)
-- [ ] **Phase 9 Evidence**: command/output capture + screenshots + hash chain
+- [x] **Phase 9 Evidence**: hash-chained evidence ledger for every operation + verify (see docs/evidence.md)
 - [ ] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage
 - [ ] **Phase 11 Adversary emulation**: scripted scenarios (web-to-admin, internal) with detection hooks
 - [ ] **Phase 12 Cloud**: AWS IAM/EC2/S3 trust-graph paths

@@ -16,6 +16,7 @@ Graph:  store → in-memory graph → JSON/Cypher/DOT, optional Neo4j MERGE sync
 Paths:  BFS entry→finding(+technique) → risk score → observed/potential,
         operator confirm to validated/confirmed
 Validation: finding → matching read-only validator → confirm → validated
+Evidence: every op → hash-chained record (prev_hash link) → verify endpoint
 ```
 
 ## Request path (Phase 1)

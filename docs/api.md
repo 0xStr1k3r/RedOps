@@ -135,6 +135,16 @@ GET /api/v1/projects/{id}/findings/{fid}/validations → 200 [ValidationRun]
 
 Validator catalog + safety rules: `docs/validation.md`.
 
+## Evidence (Phase 9, hash-chained)
+
+```http
+GET /api/v1/projects/{id}/evidence → 200 [Evidence]   # auth
+GET /api/v1/projects/{id}/evidence/{eid} → 200 Evidence | 404
+GET /api/v1/projects/{id}/evidence/verify → 200 {ok, checked, broken_at?}
+```
+
+Ledger + chain design: `docs/evidence.md`.
+
 ## Errors
 
 ```json

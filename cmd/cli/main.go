@@ -694,8 +694,51 @@ func main() {
 			return nil
 		},
 	})
+	evidenceCmd := &cobra.Command{Use: "evidence", Short: "Tamper-evident operation ledger"}
+	evidenceCmd.AddCommand(&cobra.Command{
+		Use: "list PROJECT", Args: cobra.ExactArgs(1), Short: "List evidence records in chain order",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			list, err := s.ListEvidence(p.ID)
+			if err != nil {
+				return err
+			}
+			for _, e := range list {
+				fmt.Printf("%s %s %s %s [%s]\n", e.ID[:8], e.Timestamp.Format("15:04:05"), e.Action, e.Target, truncObs(e.Hash))
+			}
+			return nil
+		},
+	})
+	evidenceCmd.AddCommand(&cobra.Command{
+		Use: "verify PROJECT", Args: cobra.ExactArgs(1), Short: "Verify the evidence hash chain",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			st := s.VerifyEvidenceChain(p.ID)
+			if st.OK {
+				fmt.Printf("chain ok (%d records)\n", st.Checked)
+				return nil
+			}
+			return fmt.Errorf("chain broken at %s (%d records checked)", st.BrokenAt, st.Checked)
+		},
+	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd)
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

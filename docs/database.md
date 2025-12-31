@@ -35,4 +35,5 @@ enum_results(id PK, project_id FK CASCADE, job_id, host_ip, port, module, summar
 findings(id PK, project_id FK CASCADE, title, description, severity, confidence, target, evidence, source, cwe, cve, technique_id, remediation, status, dedupe_key UNIQUE per project, created_at, updated_at)
 attack_paths(id PK, project_id FK CASCADE, nodes_json, length, risk, confidence, techniques, objective, privileges, created_at)
 validation_runs(id PK, project_id FK CASCADE, finding_id, validator, success, detail, actor, created_at)
+evidence(id PK, project_id FK CASCADE, timestamp, operator, target, action, command, output_ref, technique, finding_id, prev_hash, hash, created_at)
 ```

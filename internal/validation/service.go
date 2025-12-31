@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/redops/redops/internal/evidence"
 	"github.com/redops/redops/internal/project"
 )
 
@@ -42,6 +43,9 @@ func ValidateFinding(ctx context.Context, st *project.Store, projectID, findingI
 		}
 		results = append(results, res)
 		_ = st.RecordValidationRun(projectID, f.ID, v.Name(), res.Confirmed, res.Detail, actor)
+		ev := evidence.New(projectID, actor, f.Target, "validation."+v.Name(), v.Name()+" read-only check", res.Detail, f.TechniqueID)
+		ev.FindingID = f.ID
+		_, _ = st.RecordEvidence(projectID, toEvidenceRow(ev))
 		if res.Confirmed {
 			confirmed = true
 		}
@@ -55,4 +59,13 @@ func ValidateFinding(ctx context.Context, st *project.Store, projectID, findingI
 	}
 	_ = st.AppendAudit(projectID, actor, "validation.unconfirmed", f.Target, f.Title)
 	return results, false, nil
+}
+
+func toEvidenceRow(ev *evidence.Evidence) project.EvidenceRow {
+	return project.EvidenceRow{
+		ID: ev.ID, ProjectID: ev.ProjectID, Timestamp: ev.Timestamp,
+		Operator: ev.Operator, Target: ev.Target, Action: ev.Action,
+		Command: ev.Command, OutputRef: ev.OutputRef, Technique: ev.Technique,
+		FindingID: ev.FindingID,
+	}
 }

@@ -81,7 +81,8 @@ func RunJob(ctx context.Context, st *project.Store, job *project.ReconJob, opts 
 		_ = st.UpsertHost(job.ProjectID, s.HostIP, "", "", tool.Name())
 	}
 	ev := evidence.New(job.ProjectID, job.CreatedBy, job.Target, "recon."+tool.Name(), tool.Binary()+" <allowlisted args>", res.Summary, techniqueFor(tool.Name()))
-	summary := fmt.Sprintf("%s | evidence %s", res.Summary, ev.Hash[:12])
+	hash, _ := st.RecordEvidence(job.ProjectID, toEvidenceRow(ev))
+	summary := fmt.Sprintf("%s | evidence %s", res.Summary, shortHash(hash))
 	_ = st.FinishReconJob(job.ID, project.JobDone, summary, "")
 	_ = st.AppendAudit(job.ProjectID, job.CreatedBy, "recon.done", job.Target, summary)
 	return nil
@@ -96,4 +97,21 @@ func techniqueFor(tool string) string {
 	default:
 		return "T1595"
 	}
+}
+
+// toEvidenceRow converts without importing cycles (same module family).
+func toEvidenceRow(ev *evidence.Evidence) project.EvidenceRow {
+	return project.EvidenceRow{
+		ID: ev.ID, ProjectID: ev.ProjectID, Timestamp: ev.Timestamp,
+		Operator: ev.Operator, Target: ev.Target, Action: ev.Action,
+		Command: ev.Command, OutputRef: ev.OutputRef, Technique: ev.Technique,
+		FindingID: ev.FindingID,
+	}
+}
+
+func shortHash(h string) string {
+	if len(h) > 12 {
+		return h[:12]
+	}
+	return h
 }

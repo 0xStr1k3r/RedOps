@@ -97,7 +97,8 @@ func RunJob(ctx context.Context, st *project.Store, job *project.EnumJob, opts O
 		return err
 	}
 	ev := evidence.New(job.ProjectID, job.CreatedBy, fmt.Sprintf("%s:%d", job.HostIP, job.Port), "enum."+res.Module, res.Module+" read-only fetch", res.Summary, techniqueOf(res))
-	summary := fmt.Sprintf("%s | evidence %s", res.Summary, ev.Hash[:12])
+	hash, _ := st.RecordEvidence(job.ProjectID, toEvidenceRow(ev))
+	summary := fmt.Sprintf("%s | evidence %s", res.Summary, shortHash(hash))
 	_ = st.FinishEnumJob(job.ID, project.JobDone, summary, "")
 	_ = st.AppendAudit(job.ProjectID, job.CreatedBy, "enum.done", fmt.Sprintf("%s:%d", job.HostIP, job.Port), summary)
 	return nil
@@ -108,6 +109,22 @@ func techniqueOf(res Result) string {
 		return res.Observations[0].TechniqueID
 	}
 	return "T1595"
+}
+
+func toEvidenceRow(ev *evidence.Evidence) project.EvidenceRow {
+	return project.EvidenceRow{
+		ID: ev.ID, ProjectID: ev.ProjectID, Timestamp: ev.Timestamp,
+		Operator: ev.Operator, Target: ev.Target, Action: ev.Action,
+		Command: ev.Command, OutputRef: ev.OutputRef, Technique: ev.Technique,
+		FindingID: ev.FindingID,
+	}
+}
+
+func shortHash(h string) string {
+	if len(h) > 12 {
+		return h[:12]
+	}
+	return h
 }
 
 // toStored converts observations without importing project types back

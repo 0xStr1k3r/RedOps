@@ -72,6 +72,9 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/validators", handleListValidators(cfg))
 			r.Post("/projects/{id}/findings/{fid}/validate", handleValidateFinding(cfg))
 			r.Get("/projects/{id}/findings/{fid}/validations", handleListValidationRuns(cfg))
+			r.Get("/projects/{id}/evidence", handleListEvidence(cfg))
+			r.Get("/projects/{id}/evidence/{eid}", handleGetEvidence(cfg))
+			r.Get("/projects/{id}/evidence/verify", handleVerifyChain(cfg))
 		})
 	})
 	return r
