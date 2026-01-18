@@ -20,6 +20,7 @@ import (
 	"github.com/redops/redops/internal/mitre"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
+	"github.com/redops/redops/internal/report"
 	"github.com/redops/redops/internal/validation"
 	"github.com/spf13/cobra"
 )
@@ -737,8 +738,57 @@ func main() {
 			return fmt.Errorf("chain broken at %s (%d records checked)", st.BrokenAt, st.Checked)
 		},
 	})
+	reportCmd := &cobra.Command{Use: "report", Short: "Generate assessment reports"}
+	reportGenerate := &cobra.Command{
+		Use: "generate PROJECT [--format markdown|html|pdf] [--out file]", Args: cobra.ExactArgs(1),
+		Short: "Render the full assessment report",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			format, _ := cmd.Flags().GetString("format")
+			out, _ := cmd.Flags().GetString("out")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			rep, err := report.Generate(s, p.ID)
+			if err != nil {
+				return err
+			}
+			var (
+				data []byte
+				ext  string
+			)
+			switch format {
+			case "html":
+				data, ext = []byte(report.ToHTML(rep)), "html"
+			case "pdf":
+				pdf, err := report.ToPDF(rep)
+				if err != nil {
+					return err
+				}
+				data, ext = pdf, "pdf"
+			default:
+				data, ext = []byte(report.ToMarkdown(rep)), "md"
+			}
+			if out == "" {
+				out = fmt.Sprintf("redops-%s-report.%s", p.Name, ext)
+			}
+			if err := os.WriteFile(out, data, 0o644); err != nil {
+				return err
+			}
+			fmt.Printf("wrote %s (%d bytes)\n", out, len(data))
+			return nil
+		},
+	}
+	reportGenerate.Flags().String("format", "markdown", "markdown|html|pdf")
+	reportGenerate.Flags().String("out", "", "Output file (default redops-<name>-report.<ext>)")
+	reportCmd.AddCommand(reportGenerate)
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd)
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

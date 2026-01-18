@@ -75,6 +75,7 @@ func NewRouter(cfg Config) http.Handler {
 			r.Get("/projects/{id}/evidence", handleListEvidence(cfg))
 			r.Get("/projects/{id}/evidence/{eid}", handleGetEvidence(cfg))
 			r.Get("/projects/{id}/evidence/verify", handleVerifyChain(cfg))
+			r.Post("/projects/{id}/report", handleReport(cfg))
 		})
 	})
 	return r

@@ -9,7 +9,7 @@
 - [x] **Phase 7 Attack paths**: BFS over the graph, risk scoring, observed/potential only + operator confirm (see docs/attackpaths.md)
 - [x] **Phase 8 Validation**: read-only validators (headers/robots/interface/version/TLS/SSH) promoting findings to validated (see docs/validation.md)
 - [x] **Phase 9 Evidence**: hash-chained evidence ledger for every operation + verify (see docs/evidence.md)
-- [ ] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage
+- [x] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage (see docs/reporting.md)
 - [ ] **Phase 11 Adversary emulation**: scripted scenarios (web-to-admin, internal) with detection hooks
 - [ ] **Phase 12 Cloud**: AWS IAM/EC2/S3 trust-graph paths
 

@@ -145,6 +145,14 @@ GET /api/v1/projects/{id}/evidence/verify → 200 {ok, checked, broken_at?}
 
 Ledger + chain design: `docs/evidence.md`.
 
+## Reporting (Phase 10, on-demand)
+
+```http
+POST /api/v1/projects/{id}/report?format=markdown|html|pdf → 200 file  # any role
+```
+
+Renderers + sections: `docs/reporting.md`.
+
 ## Errors
 
 ```json
