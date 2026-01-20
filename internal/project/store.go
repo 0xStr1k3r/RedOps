@@ -212,6 +212,19 @@ CREATE TABLE IF NOT EXISTS evidence (
   created_at TIMESTAMP NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_evidence_project ON evidence(project_id, created_at);
+CREATE TABLE IF NOT EXISTS scenario_runs (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  scenario TEXT NOT NULL,
+  target TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued',
+  output_ref TEXT NOT NULL DEFAULT '',
+  error TEXT NOT NULL DEFAULT '',
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  finished_at TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_scenarioruns_project ON scenario_runs(project_id, created_at);
 `
 	_, err := s.db.Exec(schema)
 	return err
