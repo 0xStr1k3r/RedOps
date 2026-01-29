@@ -10,8 +10,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
@@ -21,6 +23,7 @@ import (
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
 	"github.com/redops/redops/internal/report"
+	"github.com/redops/redops/internal/scenarios"
 	"github.com/redops/redops/internal/validation"
 	"github.com/spf13/cobra"
 )
@@ -788,7 +791,101 @@ func main() {
 	reportGenerate.Flags().String("out", "", "Output file (default redops-<name>-report.<ext>)")
 	reportCmd.AddCommand(reportGenerate)
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd)
+	scenarioCmd := &cobra.Command{Use: "scenario", Short: "Adversary-emulation playbooks (read-only steps)"}
+	scenarioCmd.AddCommand(&cobra.Command{
+		Use: "list", Short: "List built-in scenarios",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			for _, sc := range scenarios.Catalog() {
+				fmt.Printf("%s\t%s\n", sc.Name, sc.Description)
+				for _, step := range sc.Steps {
+					fmt.Printf("    %-20s %-8s %s\n", step.Name, step.Kind, step.Technique)
+				}
+			}
+			return nil
+		},
+	})
+	scenarioRun := &cobra.Command{
+		Use: "run PROJECT NAME --target 10.10.10.10 [--wait]", Args: cobra.ExactArgs(2),
+		Short: "Execute a scenario against an in-scope target",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			target, _ := cmd.Flags().GetString("target")
+			wait, _ := cmd.Flags().GetBool("wait")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			if _, err := scenarios.Get(args[1]); err != nil {
+				return err
+			}
+			run, err := s.CreateScenarioRun(p.ID, args[1], target, "cli")
+			if err != nil {
+				return err
+			}
+			fmt.Printf("run %s queued (%s on %s)\n", run.ID[:8], run.Scenario, run.Target)
+			execRun := func() error {
+				_ = s.StartScenarioRun(run.ID)
+				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+				defer cancel()
+				results, err := scenarios.Run(ctx, s, p.ID, target, "cli", args[1])
+				if err != nil {
+					_ = s.FinishScenarioRun(run.ID, project.JobFailed, "", err.Error())
+					return err
+				}
+				raw, _ := json.Marshal(results)
+				done := 0
+				for _, res := range results {
+					status := "FAIL"
+					if res.Success {
+						status = "ok"
+						done++
+					}
+					fmt.Printf("  [%s] %s: %s\n", status, res.Name, res.Detail)
+					_ = status
+				}
+				_ = s.FinishScenarioRun(run.ID, project.JobDone, fmt.Sprintf("%d/%d steps ok", done, len(results)), string(raw))
+				return nil
+			}
+			if !wait {
+				go func() { _ = execRun() }()
+				fmt.Println("running in background; use 'scenario runs' to poll")
+				return nil
+			}
+			return execRun()
+		},
+	}
+	scenarioRun.Flags().String("target", "", "In-scope target (IP or CIDR)")
+	_ = scenarioRun.MarkFlagRequired("target")
+	scenarioRun.Flags().Bool("wait", false, "Wait for completion")
+	scenarioCmd.AddCommand(scenarioRun)
+	scenarioCmd.AddCommand(&cobra.Command{
+		Use: "runs PROJECT", Args: cobra.ExactArgs(1), Short: "List scenario runs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			runs, err := s.ListScenarioRuns(p.ID)
+			if err != nil {
+				return err
+			}
+			for _, r := range runs {
+				fmt.Printf("%s\t%s\t%s\t%s\t%s\n", r.ID[:8], r.Scenario, r.Target, r.Status, r.OutputRef)
+			}
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

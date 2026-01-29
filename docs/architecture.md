@@ -18,6 +18,7 @@ Paths:  BFS entry→finding(+technique) → risk score → observed/potential,
 Validation: finding → matching read-only validator → confirm → validated
 Evidence: every op → hash-chained record (prev_hash link) → verify endpoint
 Report:  aggregate all stores → Markdown / HTML / PDF on demand
+Scenarios: catalog playbooks → scope-checked read-only steps + detection hints
 ```
 
 ## Request path (Phase 1)

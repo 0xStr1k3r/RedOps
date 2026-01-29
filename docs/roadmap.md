@@ -10,7 +10,7 @@
 - [x] **Phase 8 Validation**: read-only validators (headers/robots/interface/version/TLS/SSH) promoting findings to validated (see docs/validation.md)
 - [x] **Phase 9 Evidence**: hash-chained evidence ledger for every operation + verify (see docs/evidence.md)
 - [x] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage (see docs/reporting.md)
-- [ ] **Phase 11 Adversary emulation**: scripted scenarios (web-to-admin, internal) with detection hooks
-- [ ] **Phase 12 Cloud**: AWS IAM/EC2/S3 trust-graph paths
+- [x] **Phase 11 Adversary emulation**: scripted read-only scenarios with detection hooks (see docs/scenarios.md)
+- [ ] **Phase 12 Cloud**: AWS IAM trust-graph attack paths (offline-first import)
 
 Rule: no phase adds tool execution without scope gate + audit + lab containment.

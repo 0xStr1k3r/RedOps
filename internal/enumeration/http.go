@@ -78,8 +78,12 @@ func (HTTPModule) Enumerate(ctx context.Context, sc *scope.Scope, svc ServiceRef
 		obs = append(obs, Observation{Kind: kind, Detail: detail, TechniqueID: mitre.MapObservation(kind)})
 	}
 
-	// 1. Root page.
+	// 1. Root page. A failed fetch means no HTTP service here — fail loudly
+	// rather than reporting every header missing (false-positive factory).
 	body, hdr, tlsState, status, finalURL := fetchPage(ctx, client, base+"/")
+	if hdr == nil || status == 0 {
+		return Result{}, fmt.Errorf("no HTTP response from %s", base)
+	}
 	add("http-status", fmt.Sprintf("%s -> %d", base, status))
 	if finalURL != "" && finalURL != base+"/" {
 		add("http-redirect", finalURL)

@@ -81,6 +81,34 @@ func TestHTTPModule(t *testing.T) {
 	}
 }
 
+func TestHTTPNonHTTPServiceFails(t *testing.T) {
+	// An SSH banner on the port: forcing the http module must fail loudly,
+	// never emit "missing header" findings for a non-HTTP service.
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	go func() {
+		for {
+			c, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			fmt.Fprint(c, "SSH-2.0-OpenSSH_9.6\r\n")
+			c.Close()
+		}
+	}()
+	host, portStr, _ := net.SplitHostPort(ln.Addr().String())
+	var port int
+	fmt.Sscanf(portStr, "%d", &port)
+	sc := testScope(t, "127.0.0.0/8")
+	mod, _ := Get("http")
+	if _, err := mod.Enumerate(context.Background(), sc, ServiceRef{HostIP: host, Port: port}, Options{}); err == nil {
+		t.Fatal("http module on SSH port must fail, not invent findings")
+	}
+}
+
 func TestHTTPOutOfScope(t *testing.T) {
 	sc := testScope(t, "10.10.10.0/24")
 	mod, _ := Get("http")

@@ -153,6 +153,17 @@ POST /api/v1/projects/{id}/report?format=markdown|html|pdf → 200 file  # any r
 
 Renderers + sections: `docs/reporting.md`.
 
+## Scenarios (Phase 11, read-only playbooks)
+
+```http
+GET /api/v1/scenarios → 200 [Scenario]   # auth
+POST /api/v1/projects/{id}/scenarios/{name}/run {"target":"10.10.10.10"} → 202 Run  # operator+
+GET /api/v1/projects/{id}/scenarios/runs → 200 [Run]
+GET /api/v1/projects/{id}/scenarios/runs/{runID} → 200 Run | 404
+```
+
+Playbooks + detection hooks: `docs/scenarios.md`.
+
 ## Errors
 
 ```json
