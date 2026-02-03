@@ -225,6 +225,12 @@ CREATE TABLE IF NOT EXISTS scenario_runs (
   finished_at TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_scenarioruns_project ON scenario_runs(project_id, created_at);
+CREATE TABLE IF NOT EXISTS cloud_imports (
+  project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  document TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL
+);
 `
 	_, err := s.db.Exec(schema)
 	return err

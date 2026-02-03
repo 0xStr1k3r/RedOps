@@ -1,0 +1,18 @@
+{
+  "users": [
+    {"name": "dev-alice", "policies": ["ReadOnly"], "groups": ["developers"]},
+    {"name": "ops-bob", "policies": ["ReadOnly"], "groups": ["operations"]},
+    {"name": "auditor-carol", "policies": ["ReadOnly"], "groups": ["audit"]}
+  ],
+  "roles": [
+    {"name": "DeployRole", "assume_from": ["dev-alice"], "policies": ["Deploy"]},
+    {"name": "AdminRole", "assume_from": ["DeployRole"], "policies": ["Administrator"]},
+    {"name": "PublicTestRole", "assume_from": ["*"], "policies": ["ReadOnly"]}
+  ],
+  "policies": [
+    {"name": "ReadOnly", "statements": [{"effect": "Allow", "actions": ["ec2:Describe*", "s3:Get*"]}]},
+    {"name": "Deploy", "statements": [{"effect": "Allow", "actions": ["ec2:*", "s3:*"]}]},
+    {"name": "Administrator", "statements": [{"effect": "Allow", "actions": ["*"]}]},
+    {"name": "GuardedAdmin", "statements": [{"effect": "Allow", "actions": ["*"]}, {"effect": "Deny", "actions": ["iam:*"]}]}
+  ]
+}
