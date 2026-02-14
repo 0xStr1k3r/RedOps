@@ -1,6 +1,7 @@
 package attackgraph
 
-// Node kinds. AD/cloud kinds (User, Group, Credential) arrive in later phases.
+// Node kinds. User/Role/Policy power cloud IAM analysis (Phase 12);
+// Credential/Group arrive with AD phases.
 const (
 	KindProject   = "Project"
 	KindTarget    = "Target"
@@ -8,6 +9,9 @@ const (
 	KindService   = "Service"
 	KindFinding   = "Finding"
 	KindTechnique = "Technique"
+	KindUser      = "User"
+	KindRole      = "Role"
+	KindPolicy    = "Policy"
 )
 
 // Edge types with the reason convention from the design:
@@ -19,6 +23,8 @@ const (
 	EdgeRuns       = "RUNS"        // Host -> Service (port observed open)
 	EdgeHasFinding = "HAS_FINDING" // Service|Host|Project -> Finding
 	EdgeMapsTo     = "MAPS_TO"     // Finding -> Technique (rule catalog)
+	EdgeCanAssume  = "CAN_ASSUME"  // Principal -> Role (trust policy)
+	EdgeHasPolicy  = "HAS_POLICY"  // User|Role -> Policy (attachment)
 )
 
 // Node is one graph vertex. Props are strings to keep Cypher/DOT simple.
@@ -51,4 +57,16 @@ func (g *Graph) Stats() map[string]int {
 	}
 	m["edges"] = len(g.Edges)
 	return m
+}
+
+// Merge appends another graph's nodes/edges (e.g. cloud IAM over infra).
+func Merge(base, extra *Graph) *Graph {
+	if extra == nil {
+		return base
+	}
+	out := &Graph{
+		Nodes: append(append([]Node(nil), base.Nodes...), extra.Nodes...),
+		Edges: append(append([]Edge(nil), base.Edges...), extra.Edges...),
+	}
+	return out
 }

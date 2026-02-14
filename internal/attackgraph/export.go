@@ -69,6 +69,8 @@ func ToDOT(g *Graph) string {
 			label = "Target\\n" + n.Props["value"]
 		case KindProject:
 			label = "Project\\n" + n.Props["name"]
+		case KindUser, KindRole, KindPolicy:
+			label = n.Kind + "\\n" + n.Props["name"]
 		}
 		fmt.Fprintf(&b, "  %s [label=%q];\n", id, label)
 	}

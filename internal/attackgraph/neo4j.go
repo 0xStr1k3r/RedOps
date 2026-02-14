@@ -15,11 +15,13 @@ import (
 var allowedKinds = map[string]bool{
 	KindProject: true, KindTarget: true, KindHost: true,
 	KindService: true, KindFinding: true, KindTechnique: true,
+	KindUser: true, KindRole: true, KindPolicy: true,
 }
 
 var allowedEdges = map[string]bool{
 	EdgeHasTarget: true, EdgeMatches: true, EdgeHasHost: true,
 	EdgeRuns: true, EdgeHasFinding: true, EdgeMapsTo: true,
+	EdgeCanAssume: true, EdgeHasPolicy: true,
 }
 
 // ConfigFromEnv reads Neo4j connection settings. Empty URI means unconfigured.

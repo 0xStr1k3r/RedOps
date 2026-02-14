@@ -7,7 +7,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/auth"
+	"github.com/redops/redops/internal/cloud"
 )
+
+// withCloud merges stored IAM nodes into the infra graph (best-effort:
+// a corrupt import never breaks the graph endpoints).
+func withCloud(cfg Config, projectID string, g *attackgraph.Graph) *attackgraph.Graph {
+	doc, err := cfg.Store.GetCloudImport(projectID)
+	if err != nil || doc == "" {
+		return g
+	}
+	cg, err := cloud.ToGraphFromDocument(doc)
+	if err != nil {
+		return g
+	}
+	return attackgraph.Merge(g, cg)
+}
 
 func handleGraphJSON(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -16,6 +31,7 @@ func handleGraphJSON(cfg Config) http.HandlerFunc {
 			writeErr(w, 404, "project not found")
 			return
 		}
+		g = withCloud(cfg, chi.URLParam(r, "id"), g)
 		writeJSON(w, 200, map[string]any{"nodes": g.Nodes, "edges": g.Edges, "stats": g.Stats()})
 	}
 }
@@ -27,6 +43,7 @@ func handleGraphCypher(cfg Config) http.HandlerFunc {
 			writeErr(w, 404, "project not found")
 			return
 		}
+		g = withCloud(cfg, chi.URLParam(r, "id"), g)
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(200)
 		_, _ = w.Write([]byte(attackgraph.ToCypher(g)))
@@ -44,6 +61,7 @@ func handleGraphSync(cfg Config) http.HandlerFunc {
 			writeErr(w, 404, "project not found")
 			return
 		}
+		g = withCloud(cfg, chi.URLParam(r, "id"), g)
 		uri, user, pass := attackgraph.ConfigFromEnv()
 		if uri == "" {
 			writeErr(w, 501, "neo4j not configured (set REDOPS_NEO4J_URI/USER/PASS)")

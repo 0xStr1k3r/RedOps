@@ -37,4 +37,5 @@ attack_paths(id PK, project_id FK CASCADE, nodes_json, length, risk, confidence,
 validation_runs(id PK, project_id FK CASCADE, finding_id, validator, success, detail, actor, created_at)
 evidence(id PK, project_id FK CASCADE, timestamp, operator, target, action, command, output_ref, technique, finding_id, prev_hash, hash, created_at)
 scenario_runs(id PK, project_id FK CASCADE, scenario, target, status, output_ref, error, created_by, created_at, finished_at)
+cloud_imports(project_id PK FK, document, created_at, updated_at)
 ```

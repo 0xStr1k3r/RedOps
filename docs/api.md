@@ -164,6 +164,16 @@ GET /api/v1/projects/{id}/scenarios/runs/{runID} → 200 Run | 404
 
 Playbooks + detection hooks: `docs/scenarios.md`.
 
+## Cloud IAM (Phase 12, offline import)
+
+```http
+POST /api/v1/projects/{id}/cloud/import → 200 {status}   # operator+, JSON body ≤1MB
+GET /api/v1/projects/{id}/cloud/assets → 200 {nodes, edges, stats}
+GET /api/v1/projects/{id}/cloud/paths → 200 [PrivilegePath]
+```
+
+Schema + analysis rules: `docs/cloud.md`.
+
 ## Errors
 
 ```json

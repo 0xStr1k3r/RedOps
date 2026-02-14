@@ -13,10 +13,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
+	"github.com/redops/redops/internal/cloud"
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
 	"github.com/redops/redops/internal/mitre"
@@ -72,6 +74,19 @@ func resolvePathID(s *project.Store, projectID, ref string) (string, error) {
 		return "", fmt.Errorf("ambiguous path prefix %q (%d matches)", ref, n)
 	}
 	return match, nil
+}
+
+// withCloudGraph merges stored IAM nodes into the infra graph (best-effort).
+func withCloudGraph(s *project.Store, projectID string, g *attackgraph.Graph) *attackgraph.Graph {
+	doc, err := s.GetCloudImport(projectID)
+	if err != nil || doc == "" {
+		return g
+	}
+	cg, err := cloud.ToGraphFromDocument(doc)
+	if err != nil {
+		return g
+	}
+	return attackgraph.Merge(g, cg)
 }
 
 // resolveFindingID accepts a full UUID or an unambiguous prefix (list shows short IDs).
@@ -544,6 +559,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			g = withCloudGraph(s, p.ID, g)
 			switch format {
 			case "cypher":
 				fmt.Println(attackgraph.ToCypher(g))
@@ -577,6 +593,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			g = withCloudGraph(s, p.ID, g)
 			uri, user, pass := attackgraph.ConfigFromEnv()
 			if err := attackgraph.Sync(context.Background(), uri, user, pass, g); err != nil {
 				return err
@@ -885,7 +902,92 @@ func main() {
 		},
 	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd)
+	cloudCmd := &cobra.Command{Use: "cloud", Short: "Cloud IAM trust-graph analysis (offline import)"}
+	cloudImport := &cobra.Command{
+		Use: "import PROJECT --file iam.json", Args: cobra.ExactArgs(1),
+		Short: "Validate and store an IAM JSON import (replace semantics)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			file, _ := cmd.Flags().GetString("file")
+			raw, err := os.ReadFile(file)
+			if err != nil {
+				return err
+			}
+			if _, err := cloud.ParseImport(raw); err != nil {
+				return err
+			}
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			if err := s.SaveCloudImport(p.ID, string(raw), "cli"); err != nil {
+				return err
+			}
+			fmt.Println("import stored")
+			return nil
+		},
+	}
+	cloudImport.Flags().String("file", "", "IAM JSON file")
+	_ = cloudImport.MarkFlagRequired("file")
+	cloudCmd.AddCommand(cloudImport)
+	cloudCmd.AddCommand(&cobra.Command{
+		Use: "paths PROJECT", Args: cobra.ExactArgs(1), Short: "Show admin-reaching privilege paths",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			doc, err := s.GetCloudImport(p.ID)
+			if err != nil || doc == "" {
+				return fmt.Errorf("no cloud import for project")
+			}
+			imp, err := cloud.ParseImport([]byte(doc))
+			if err != nil {
+				return err
+			}
+			for _, path := range cloud.FindPaths(imp) {
+				fmt.Printf("risk=%d %s\n  %s\n", path.Risk, path.Objective, strings.Join(path.Chain, " -> "))
+			}
+			return nil
+		},
+	})
+	cloudCmd.AddCommand(&cobra.Command{
+		Use: "assets PROJECT", Args: cobra.ExactArgs(1), Short: "Show cloud node counts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			doc, err := s.GetCloudImport(p.ID)
+			if err != nil || doc == "" {
+				return fmt.Errorf("no cloud import for project")
+			}
+			g, err := cloud.ToGraphFromDocument(doc)
+			if err != nil {
+				return err
+			}
+			for kind, n := range g.Stats() {
+				fmt.Printf("  %s: %d\n", kind, n)
+			}
+			return nil
+		},
+	})
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd, cloudCmd)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

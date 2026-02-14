@@ -11,6 +11,6 @@
 - [x] **Phase 9 Evidence**: hash-chained evidence ledger for every operation + verify (see docs/evidence.md)
 - [x] **Phase 10 Reporting**: Markdown/HTML/PDF with timeline + ATT&CK coverage (see docs/reporting.md)
 - [x] **Phase 11 Adversary emulation**: scripted read-only scenarios with detection hooks (see docs/scenarios.md)
-- [ ] **Phase 12 Cloud**: AWS IAM trust-graph attack paths (offline-first import)
+- [x] **Phase 12 Cloud**: offline IAM trust-graph analysis, admin paths + wildcard trust (see docs/cloud.md)
 
 Rule: no phase adds tool execution without scope gate + audit + lab containment.

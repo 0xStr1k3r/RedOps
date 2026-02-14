@@ -8,7 +8,7 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 11 — Adversary emulation (implemented)
+## Status: Phase 12 — Cloud (all 12 phases implemented)
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
@@ -25,6 +25,7 @@ timeline → report.
 - Evidence: hash-chained operation ledger + verify — see `docs/evidence.md`
 - Reporting: Markdown/HTML/PDF assessment reports — see `docs/reporting.md`
 - Scenarios: read-only adversary-emulation playbooks — see `docs/scenarios.md`
+- Cloud: offline IAM trust-graph analysis — see `docs/cloud.md`
 - SQLite store (Postgres-compatible schema, see `docs/database.md`)
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
@@ -170,6 +171,13 @@ export REDOPS_NEO4J_URI=bolt://127.0.0.1:7687 REDOPS_NEO4J_USER=neo4j REDOPS_NEO
 ```bash
 ./bin/redops --db redops.db scenario list
 ./bin/redops --db redops.db scenario run lab web-to-admin --target 10.10.10.10 --wait
+```
+
+## Cloud IAM (Phase 12, offline)
+
+```bash
+./bin/redops --db redops.db cloud import acme --file lab/cloud-iam-example.json
+./bin/redops --db redops.db cloud paths acme
 ```
 
 ## Layout
