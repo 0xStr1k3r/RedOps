@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RedOps — Red-Team Attack Path Platform</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand"><span class="brand-mark">◈</span> RedOps</div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div id="userbox" class="muted"></div>
+      <button id="logoutBtn" class="btn ghost sm hidden">Log out</button>
+    </div>
+  </aside>
+  <main id="main">
+    <header id="topbar">
+      <select id="projectSel" class="hidden" title="Active project"></select>
+      <span id="conn" class="pill">● api</span>
+    </header>
+    <section id="view"></section>
+  </main>
+</div>
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
