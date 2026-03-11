@@ -28,6 +28,7 @@ func NewRouter(cfg Config) http.Handler {
 	r.Get("/healthz", func(w http.ResponseWriter, req *http.Request) {
 		writeJSON(w, 200, map[string]string{"status": "ok", "service": "redops-api"})
 	})
+	mountGUI(r)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/auth/register", handleRegister(cfg))
