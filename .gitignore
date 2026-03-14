@@ -1,5 +1,6 @@
 bin/
 redops.db
+internal/api/webdist/
 *.db
 *.db-wal
 *.db-shm
@@ -8,4 +9,5 @@ __pycache__/
 node_modules/
 .next/
 dist/
+!web/dist/
 .DS_Store

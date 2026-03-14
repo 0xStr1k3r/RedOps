@@ -8,7 +8,10 @@ Modular red-team platform: project → scope → targets → recon → enumerati
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →
 timeline → report.
 
-## Status: Phase 12 — Cloud (all 12 phases implemented)
+## Status: complete platform (all 12 phases + GUI + installer)
+
+One `redops` binary = CLI + API + embedded GUI + worker. Full operator
+manual: [docs/usage.md](docs/usage.md).
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**
@@ -30,20 +33,32 @@ timeline → report.
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
 - CLI (`redops`), server (`redops-api`), worker (`redops-worker`)
-- CI: tests, vet, gosec, Trivy
+- Modern dark GUI embedded in the binary (no Node build step)
+- Universal `install.sh` (Debian/Arch/RHEL/openSUSE/Alpine) + CI: tests, vet, gosec, Trivy
+
+## Install (one binary, any Linux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/redops/redops/main/install.sh | bash
+redops --db ~/redops.db serve --addr 127.0.0.1:8080   # API + GUI at http://127.0.0.1:8080
+redops --db ~/redops.db worker                        # job runner (second shell)
+```
+
+No default credentials: the first registered user becomes **admin**
+(see [docs/usage.md](docs/usage.md) §2). Or build locally with `make build`
+(`bin/redops`) / `make install`.
 
 ## Quick start (no Docker needed)
 
 ```bash
-# 1. Build
-make build
+# 1. Serve the API + GUI (secret auto-generated to .redops-secret on first run)
+redops --db ~/redops.db serve --addr 127.0.0.1:8080 &
+redops --db ~/redops.db worker &   # job runner
 
-# 2. Start API (needs 32+ char secret)
-export REDOPS_JWT_SECRET=$(openssl rand -hex 32)
-export REDOPS_DB=redops.db
-./bin/redops-api &
-# or: go run ./cmd/server
+# 2. Open http://127.0.0.1:8080 → Register (first user = admin) → Projects → New
+#    scope 10.10.10.0/24, target 10.10.10.10 (8.8.8.8 is refused: 403)
 
+# ...or the same flow over the API:
 # 3. Register first user (becomes admin), login
 curl -s -X POST localhost:8080/api/v1/auth/register \
   -H 'Content-Type: application/json' \
