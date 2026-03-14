@@ -10,12 +10,17 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/redops/redops/internal/api"
 	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/cloud"
@@ -27,12 +32,49 @@ import (
 	"github.com/redops/redops/internal/report"
 	"github.com/redops/redops/internal/scenarios"
 	"github.com/redops/redops/internal/validation"
+	"github.com/redops/redops/internal/worker"
 	"github.com/spf13/cobra"
 )
 
 var dbPath string
 
+// version is set at build time: go build -ldflags "-X main.version=...".
+var version = "dev"
+
 func store() (*project.Store, error) { return project.Open(dbPath) }
+
+// resolveSecret implements flag > env > generated file (0600) next to the DB.
+// Auto-generation keeps the single-binary UX smooth; the path is logged so
+// operators can back it up or replace it with a vault-provided value.
+func resolveSecret(flagVal, db string) (string, error) {
+	if len(flagVal) >= 32 {
+		return flagVal, nil
+	}
+	if flagVal != "" {
+		return "", fmt.Errorf("--secret must be at least 32 characters")
+	}
+	if env := os.Getenv("REDOPS_JWT_SECRET"); len(env) >= 32 {
+		return env, nil
+	}
+	dir := filepath.Dir(db)
+	if dir == "" {
+		dir = "."
+	}
+	path := filepath.Join(dir, ".redops-secret")
+	if raw, err := os.ReadFile(path); err == nil && len(strings.TrimSpace(string(raw))) >= 32 {
+		return strings.TrimSpace(string(raw)), nil
+	}
+	buf := make([]byte, 32)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	secret := hex.EncodeToString(buf)
+	if err := os.WriteFile(path, []byte(secret+"\n"), 0o600); err != nil {
+		return "", err
+	}
+	fmt.Printf("generated JWT secret at %s (mode 0600) — back it up or set REDOPS_JWT_SECRET\n", path)
+	return secret, nil
+}
 
 func truncObs(s string) string {
 	if len(s) > 80 {
@@ -987,7 +1029,55 @@ func main() {
 		},
 	})
 
-	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd, cloudCmd)
+	serveRun := &cobra.Command{
+		Use: "serve", Args: cobra.NoArgs, Short: "Run the API + embedded GUI server",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			addr, _ := cmd.Flags().GetString("addr")
+			secretFlag, _ := cmd.Flags().GetString("secret")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			secret, err := resolveSecret(secretFlag, dbPath)
+			if err != nil {
+				return err
+			}
+			h := api.NewRouter(api.Config{Store: s, JWTSecret: secret, TokenTTL: 12 * time.Hour})
+			fmt.Printf("redops serving API+GUI on %s (db=%s)\n", addr, dbPath)
+			return http.ListenAndServe(addr, h)
+		},
+	}
+	serveRun.Flags().String("addr", ":8080", "Listen address")
+	serveRun.Flags().String("secret", "", "JWT secret (≥32 chars; else $REDOPS_JWT_SECRET, else auto-generated file)")
+	workerRun := &cobra.Command{
+		Use: "worker", Args: cobra.NoArgs, Short: "Poll recon/enum queues and execute jobs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			interval, _ := cmd.Flags().GetDuration("interval")
+			once, _ := cmd.Flags().GetBool("once")
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			if once {
+				worker.RunOnce(s)
+				return nil
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			worker.Loop(ctx, s, interval)
+			return nil
+		},
+	}
+	workerRun.Flags().Duration("interval", 5*time.Second, "Poll interval")
+	workerRun.Flags().Bool("once", false, "Single pass then exit")
+
+	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd, cloudCmd, serveRun, workerRun)
+	root.AddCommand(&cobra.Command{
+		Use: "version", Short: "Print the redops version",
+		Run: func(cmd *cobra.Command, args []string) { fmt.Println("redops", version) },
+	})
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
