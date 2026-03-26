@@ -83,6 +83,8 @@ func NewRouter(cfg Config) http.Handler {
 			r.Post("/projects/{id}/cloud/import", handleCloudImport(cfg))
 			r.Get("/projects/{id}/cloud/assets", handleCloudAssets(cfg))
 			r.Get("/projects/{id}/cloud/paths", handleCloudPaths(cfg))
+			r.Get("/projects/{id}/insights", handleInsights(cfg))
+			r.Get("/projects/{id}/techniques/layer", handleLayer(cfg))
 			r.Post("/projects/{id}/report", handleReport(cfg))
 		})
 	})

@@ -24,6 +24,7 @@ import (
 	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/cloud"
+	"github.com/redops/redops/internal/insights"
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
 	"github.com/redops/redops/internal/mitre"
@@ -1074,6 +1075,28 @@ func main() {
 	workerRun.Flags().Bool("once", false, "Single pass then exit")
 
 	root.AddCommand(projectCmd, targetCmd, scopeCmd, statusCmd, reconCmd, assetsCmd, enumCmd, findingsCmd, mitreCmd, graphCmd, pathsCmd, validateCmd, evidenceCmd, reportCmd, scenarioCmd, cloudCmd, serveRun, workerRun)
+	root.AddCommand(&cobra.Command{
+		Use: "insights PROJECT", Args: cobra.ExactArgs(1), Short: "Show prioritized actionable insights",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := store()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			p, err := findProject(s, args[0])
+			if err != nil {
+				return err
+			}
+			list, err := insights.Compute(s, p.ID)
+			if err != nil {
+				return err
+			}
+			for _, in := range list {
+				fmt.Printf("[%s] %s\n    %s (%s)\n", in.Level, in.Title, in.Detail, in.Link)
+			}
+			return nil
+		},
+	})
 	root.AddCommand(&cobra.Command{
 		Use: "version", Short: "Print the redops version",
 		Run: func(cmd *cobra.Command, args []string) { fmt.Println("redops", version) },
