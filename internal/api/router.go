@@ -31,8 +31,9 @@ func NewRouter(cfg Config) http.Handler {
 	mountGUI(r)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Post("/auth/register", handleRegister(cfg))
-		r.Post("/auth/login", handleLogin(cfg))
+		authLimit := newRateLimiter(10, time.Minute)
+		r.Post("/auth/register", limitAuth(authLimit, handleRegister(cfg)))
+		r.Post("/auth/login", limitAuth(authLimit, handleLogin(cfg)))
 		// Static ATT&CK reference is public; per-project coverage needs auth.
 		r.Get("/mitre/tactics", handleMitreTactics(cfg))
 		r.Get("/mitre/techniques", handleMitreTechniques(cfg))

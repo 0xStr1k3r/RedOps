@@ -81,8 +81,15 @@ func TestHTTPModule(t *testing.T) {
 	}
 }
 
-func TestHTTPNonHTTPServiceFails(t *testing.T) {
-	// An SSH banner on the port: forcing the http module must fail loudly,
+func TestHTTPMetadataGuard(t *testing.T) {
+	sc := testScope(t, "169.254.0.0/16")
+	mod, _ := Get("http")
+	if _, err := mod.Enumerate(context.Background(), sc, ServiceRef{HostIP: "169.254.169.254", Port: 80}, Options{}); err == nil {
+		t.Fatal("metadata IP must be refused even when in scope")
+	}
+}
+
+func TestHTTPNonHTTPServiceFails(t *testing.T) { // An SSH banner on the port: forcing the http module must fail loudly,
 	// never emit "missing header" findings for a non-HTTP service.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
