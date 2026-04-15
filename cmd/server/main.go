@@ -33,7 +33,15 @@ func main() {
 
 	h := api.NewRouter(api.Config{Store: st, JWTSecret: secret, TokenTTL: 12 * time.Hour})
 	log.Printf("redops-api listening on %s (db=%s)", addr, dbPath)
-	if err := http.ListenAndServe(addr, h); err != nil {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           h,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

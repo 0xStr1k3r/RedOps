@@ -24,7 +24,7 @@ WITH_NMAP=1
 WITH_SERVICE=0
 UNINSTALL=0
 REPO="${REDOPS_REPO:-https://github.com/redops/redops.git}"
-GO_VERSION="${GO_VERSION:-1.26.0}"
+GO_VERSION="${GO_VERSION:-1.26.8}"
 
 log()  { printf '\033[1;32m[redops]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[redops]\033[0m %s\n' "$*" >&2; }

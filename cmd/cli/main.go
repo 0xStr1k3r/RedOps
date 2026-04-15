@@ -24,9 +24,9 @@ import (
 	"github.com/redops/redops/internal/attack"
 	"github.com/redops/redops/internal/attackgraph"
 	"github.com/redops/redops/internal/cloud"
-	"github.com/redops/redops/internal/insights"
 	"github.com/redops/redops/internal/enumeration"
 	"github.com/redops/redops/internal/findings"
+	"github.com/redops/redops/internal/insights"
 	"github.com/redops/redops/internal/mitre"
 	"github.com/redops/redops/internal/project"
 	"github.com/redops/redops/internal/recon"
@@ -62,6 +62,7 @@ func resolveSecret(flagVal, db string) (string, error) {
 		dir = "."
 	}
 	path := filepath.Join(dir, ".redops-secret")
+	// #nosec G304 -- operator-owned CLI reading its own config path (fixed filename, no privilege boundary).
 	if raw, err := os.ReadFile(path); err == nil && len(strings.TrimSpace(string(raw))) >= 32 {
 		return strings.TrimSpace(string(raw)), nil
 	}
@@ -840,7 +841,8 @@ func main() {
 			if out == "" {
 				out = fmt.Sprintf("redops-%s-report.%s", p.Name, ext)
 			}
-			if err := os.WriteFile(out, data, 0o644); err != nil {
+			// Reports embed assessment findings: owner-only permissions.
+			if err := os.WriteFile(out, data, 0o600); err != nil {
 				return err
 			}
 			fmt.Printf("wrote %s (%d bytes)\n", out, len(data))
@@ -951,6 +953,7 @@ func main() {
 		Short: "Validate and store an IAM JSON import (replace semantics)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			file, _ := cmd.Flags().GetString("file")
+			// #nosec G304 -- local operator tool reading an explicit operator-supplied path (equivalent to cat).
 			raw, err := os.ReadFile(file)
 			if err != nil {
 				return err
@@ -1046,7 +1049,15 @@ func main() {
 			}
 			h := api.NewRouter(api.Config{Store: s, JWTSecret: secret, TokenTTL: 12 * time.Hour})
 			fmt.Printf("redops serving API+GUI on %s (db=%s)\n", addr, dbPath)
-			return http.ListenAndServe(addr, h)
+			srv := &http.Server{
+				Addr:              addr,
+				Handler:           h,
+				ReadHeaderTimeout: 10 * time.Second,
+				ReadTimeout:       30 * time.Second,
+				WriteTimeout:      60 * time.Second,
+				IdleTimeout:       120 * time.Second,
+			}
+			return srv.ListenAndServe()
 		},
 	}
 	serveRun.Flags().String("addr", ":8080", "Listen address")

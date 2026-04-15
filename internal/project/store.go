@@ -3,6 +3,7 @@ package project
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -18,7 +19,8 @@ type Store struct {
 }
 
 // Open creates/opens the SQLite file and applies the schema.
-// Use ":memory:" for tests.
+// Use ":memory:" for tests. The database holds password hashes and audit
+// logs, so file-backed databases are chmodded 0600 (best-effort).
 func Open(path string) (*Store, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -26,8 +28,11 @@ func Open(path string) (*Store, error) {
 	}
 	s := &Store{db: db}
 	if err := s.migrate(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, err
+	}
+	if path != ":memory:" && !strings.HasPrefix(path, "file:") {
+		_ = os.Chmod(path, 0o600)
 	}
 	return s, nil
 }

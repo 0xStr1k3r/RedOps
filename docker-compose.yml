@@ -5,7 +5,7 @@ services:
   redops-api:
     build: .
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       REDOPS_DB: /data/redops.db
       REDOPS_JWT_SECRET: ${REDOPS_JWT_SECRET:?set a 32+ char secret in .env}
@@ -20,8 +20,8 @@ services:
     image: neo4j:5-community
     profiles: ["graph"]
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
     environment:
       NEO4J_AUTH: ${NEO4J_AUTH:?set neo4j/<password> in .env to enable the graph profile}
       NEO4J_dbms_memory_heap_max__size: 512M
