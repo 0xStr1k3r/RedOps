@@ -46,6 +46,9 @@ func (HttpxTool) Execute(ctx context.Context, sc *scope.Scope, target string, op
 	bare := strings.TrimPrefix(strings.TrimPrefix(input, "http://"), "https://")
 	bare = strings.Split(bare, "/")[0]
 	bare = strings.Split(bare, ":")[0]
+	if scope.IsBlockedHost(bare) {
+		return nil, fmt.Errorf("refusing blocked host %q (cloud metadata guard)", bare)
+	}
 	if err := sc.Enforce(bare); err != nil {
 		return nil, err
 	}

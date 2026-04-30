@@ -33,8 +33,9 @@ manual: [docs/usage.md](docs/usage.md).
 - Timeline + audit log, evidence hashing (SHA-256)
 - Nmap/httpx/dnsx parsers, finding schema, MITRE subset
 - CLI (`redops`), server (`redops-api`), worker (`redops-worker`)
-- Modern dark GUI embedded in the binary (no Node build step)
+- GUI: embedded dark SPA (10 views) + dashboard widgets, insights, Navigator heat matrix — see `docs/usage.md` §4
 - Universal `install.sh` (Debian/Arch/RHEL/openSUSE/Alpine) + CI: tests, vet, gosec, Trivy
+- Hardened: [security review](docs/security-review.md) — govulncheck 0 reachable, gosec 0 issues
 
 ## Install (one binary, any Linux)
 

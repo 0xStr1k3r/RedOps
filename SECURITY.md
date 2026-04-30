@@ -15,6 +15,8 @@ no payloads, no persistence, no EDR bypass**.
 | Threat | Mitigation (Phase 1) |
 |---|---|
 | Operator scans out-of-scope host | `internal/scope` CIDR/IP/domain enforcement on every `AddTarget`; API returns 403 + audit `target.denied` |
+| Credential stuffing on login | 10 req/min/IP on auth endpoints, 429 + Retry-After (`api/ratelimit.go`) |
+| Cloud-metadata SSRF via fetchers | `scope.IsBlockedHost` enforced in http enum, all validators, httpx, dns |
 | Arbitrary shell via tool params | **No tool execution in Phase 1.** Phase 2+ uses allowlisted adapters (`Tool` interface), never `sh -c $input` |
 | Credential theft (DB leak) | Argon2id (`m=64MB,t=2,p=2`), never plaintext; JWT HS256, 12h TTL, secret from env |
 | Privilege escalation in app | RBAC `admin > operator > viewer`; viewers read-only; first user bootstraps admin |
@@ -36,11 +38,18 @@ no payloads, no persistence, no EDR bypass**.
 ## 4. Secrets
 
 - `REDOPS_JWT_SECRET`: ≥32 chars, from env or vault. Never commit.
-- DB file (`redops.db`) contains password hashes + audit log: restrict to `0600`.
+- DB file (`redops.db`) and `.redops-secret` are created mode `0600`.
 - Neo4j password via `NEO4J_AUTH`/`REDOPS_NEO4J_PASS` env only; the Browser (7474) is never exposed beyond localhost in the provided compose.
 - Postgres/Redis passwords (Phase 6 compose) come from `.env`, not git.
+- Compose binds API + Neo4j ports to `127.0.0.1`; expose deliberately or not at all.
 
-## 5. Reporting vulnerabilities in RedOps
+## 5. Security review
+
+Full audit (auth, scope/SSRF, exec, SQL, XSS, transport, crypto, deps):
+[docs/security-review.md](docs/security-review.md) — govulncheck 0 reachable,
+gosec 0 issues. Re-run before every release.
+
+## 6. Reporting vulnerabilities in RedOps
 
 Open a GitHub issue with `security` label or email maintainers. Include:
 repro steps, scope config, logs (redact secrets). Do not publish exploits

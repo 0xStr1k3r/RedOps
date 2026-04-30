@@ -51,12 +51,15 @@ func (HTTPModule) Enumerate(ctx context.Context, sc *scope.Scope, svc ServiceRef
 	if svc.Port == 443 || svc.Port == 8443 {
 		scheme = "https"
 	}
+	if scope.IsBlockedHost(svc.HostIP) {
+		return Result{}, fmt.Errorf("refusing to fetch blocked host %q (cloud metadata guard)", svc.HostIP)
+	}
 	base := fmt.Sprintf("%s://%s:%d", scheme, svc.HostIP, svc.Port)
 	client := &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
 			DialContext:       (&net.Dialer{Timeout: 8 * time.Second}).DialContext,
-			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // lab metadata only, never send creds
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true}, // #nosec G402 -- lab metadata fetch; validators never transmit credentials.
 			DisableKeepAlives: true,
 		},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {

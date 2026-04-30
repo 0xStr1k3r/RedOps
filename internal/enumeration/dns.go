@@ -41,6 +41,9 @@ func (DNSModule) Resolve(ctx context.Context, sc *scope.Scope, hostname string) 
 	if typ != scope.TypeDomain {
 		return nil, fmt.Errorf("dns module needs a hostname, got %q", hostname)
 	}
+	if scope.IsBlockedHost(norm) {
+		return nil, fmt.Errorf("refusing blocked host %q (cloud metadata guard)", norm)
+	}
 	if err := sc.Enforce(norm); err != nil {
 		return nil, err
 	}

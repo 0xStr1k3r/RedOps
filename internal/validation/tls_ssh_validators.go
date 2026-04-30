@@ -40,7 +40,7 @@ func (TLSValidator) Run(ctx context.Context, sc *scope.Scope, target string, opt
 	}
 	timeout := effectiveTimeout(opts.Timeout)
 	d := net.Dialer{Timeout: 8 * time.Second}
-	conn, err := tls.DialWithDialer(&d, "tcp", net.JoinHostPort(host, port), &tls.Config{InsecureSkipVerify: true})
+	conn, err := tls.DialWithDialer(&d, "tcp", net.JoinHostPort(host, port), &tls.Config{InsecureSkipVerify: true}) // #nosec G402 -- handshake metadata only; nothing is transmitted.
 	if err != nil {
 		return Result{}, fmt.Errorf("handshake: %w", err)
 	}

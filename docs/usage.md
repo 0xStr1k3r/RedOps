@@ -198,6 +198,7 @@ Conventions: 202 = queued (poll the resource), 400 = bad input/unknown tool,
 | GUI shows login but calls fail 401 | token expired (12 h) — log in again |
 | `redops serve` says secret generated | first run;-back up `<dbdir>/.redops-secret` or set `$REDOPS_JWT_SECRET` |
 | `evidence verify` BROKEN | DB was edited outside RedOps — restore backup; chain is tamper-evident by design |
+| login loops with 429 | auth rate limit (10/min/IP) — wait a minute; legitimate bursts (tests) hit it too |
 | GUI blank after editing `web/` | run `make build` (embeds via `sync-web`), not bare `go build` |
 | `report` PDF tiny/empty | generate after discovery; empty projects render skeletons |
 | scenario stuck `running` | worker crash mid-run — rerun; queued/running rows are informational |

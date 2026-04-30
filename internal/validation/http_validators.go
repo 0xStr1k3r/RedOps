@@ -27,6 +27,9 @@ func splitTarget(target string) (host string, port string, err error) {
 	if _, _, err := scope.Classify(host); err != nil {
 		return "", "", fmt.Errorf("invalid host %q", host)
 	}
+	if scope.IsBlockedHost(host) {
+		return "", "", fmt.Errorf("refusing blocked host %q (cloud metadata guard)", host)
+	}
 	if port == "" {
 		port = "80"
 	}
@@ -40,7 +43,7 @@ func httpClient() *http.Client {
 		Timeout: 15 * time.Second,
 		Transport: &http.Transport{
 			DialContext:           (&net.Dialer{Timeout: 8 * time.Second}).DialContext,
-			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true}, // #nosec G402 -- read-only lab checks; no credentials ever sent.
 			DisableKeepAlives:     true,
 			ResponseHeaderTimeout: 10 * time.Second,
 		},

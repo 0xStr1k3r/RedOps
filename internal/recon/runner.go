@@ -70,6 +70,7 @@ func runBinary(ctx context.Context, sc *scope.Scope, binary, target string, args
 	timeout := effectiveTimeout(opts.Timeout)
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
+	// #nosec G204 -- binary resolved via LookPath from the allowlisted adapter registry; argv only, never a shell.
 	cmd := exec.CommandContext(ctx, path, args...)
 	// Detach stdin so tools never block reading the terminal.
 	cmd.Stdin = nil
