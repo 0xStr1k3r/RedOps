@@ -1,9 +1,12 @@
-.PHONY: build test vet run-api lint clean sync-web install
+.PHONY: build test vet run-api lint clean sync-web install help
 BIN=bin
 PREFIX=/usr/local
 DESTDIR=
 VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS=-s -w -X main.version=$(VERSION)
+
+help:
+	@echo "targets: build test vet run-api install clean sync-web"
 
 build: sync-web
 	mkdir -p $(BIN)
