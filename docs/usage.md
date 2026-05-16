@@ -202,6 +202,7 @@ Conventions: 202 = queued (poll the resource), 400 = bad input/unknown tool,
 | GUI blank after editing `web/` | run `make build` (embeds via `sync-web`), not bare `go build` |
 | `report` PDF tiny/empty | generate after discovery; empty projects render skeletons |
 | scenario stuck `running` | worker crash mid-run — rerun; queued/running rows are informational |
+| worker finds no jobs but GUI shows queued | serve and worker must open the **same** `--db` file — check both commands |
 | port already in use | change `--addr` (serve) — one server per DB file recommended |
 
 ## 9. Scope of this tool
