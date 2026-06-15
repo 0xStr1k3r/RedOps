@@ -11,7 +11,8 @@ timeline → report.
 ## Status: complete platform (all 12 phases + GUI + installer)
 
 One `redops` binary = CLI + API + embedded GUI + worker. Full operator
-manual: [docs/usage.md](docs/usage.md).
+manual: [docs/usage.md](docs/usage.md). `lab/` is a separate testing sandbox
+(demo targets + seed script) — the product never depends on it.
 
 - Go REST API (`chi`), JWT auth, RBAC (`admin > operator > viewer`)
 - Project / scope / target management with **scope enforcement**

@@ -1,0 +1,18 @@
+# VulnLab — runnable demo targets for RedOps. TESTING SANDBOX ONLY:
+# loopback-bound, no auth, no real data. Not part of the product.
+# web01: intentionally vulnerable web app (missing headers, robots, admin title).
+# ssh01: stock OpenSSH banner, password auth DISABLED (banner reads only).
+services:
+  web01:
+    build: ./web01
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: "no"
+  ssh01:
+    image: linuxserver/openssh-server:latest
+    environment:
+      - PASSWORD_ACCESS=false
+      - USER_NAME=labuser
+    ports:
+      - "127.0.0.1:2222:2222"
+    restart: "no"
