@@ -1,0 +1,21 @@
+[Unit]
+Description=RedOps red-team platform (API + GUI)
+Documentation=https://github.com/redops/redops/blob/main/docs/usage.md
+After=network.target
+
+[Service]
+Type=simple
+User=redops
+WorkingDirectory=/var/lib/redops
+# Same DB file the worker must open: run redops-worker (or `redops worker`)
+# under the same user so file permissions stay consistent.
+ExecStart=/usr/local/bin/redops --db /var/lib/redops/redops.db serve --addr 127.0.0.1:8080
+# JWT secret via environment file (0600, root/redops readable only).
+EnvironmentFile=/etc/redops/env
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
