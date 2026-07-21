@@ -1,0 +1,27 @@
+title: Detect RedOps HTTP enumeration (robots/sitemap sweeps)
+id: 1a3f9d2c-6c11-4f0e-9a2e-redops0002
+status: experimental
+description: >
+  RedOps enumeration (T1594) fetches /robots.txt and /sitemap.xml with a
+  distinct User-Agent. This correlates a first request to / followed by
+  robots/sitemap access within a short window from the same source.
+references:
+  - https://attack.mitre.org/techniques/T1594/
+logsource:
+  category: webserver
+detection:
+  selection:
+    UserAgent|re: 'RedOps-lab/'
+  selection_paths:
+    cs-uri-stem:
+      - /robots.txt
+      - /sitemap.xml
+  filter_bots:
+    UserAgent|re: '(bot|crawler|spider|slurp|bingbot)'
+  condition: selection and selection_paths and not filter_bots
+falsepositives:
+  - Security scanners validating robots rules
+level: low
+tags:
+  - attack.reconnaissance
+  - attack.t1594

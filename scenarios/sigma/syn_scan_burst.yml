@@ -1,0 +1,39 @@
+title: Detect RedOps-style nmap service/version scan bursts
+id: 1a3f9d2c-6c11-4f0e-9a2e-redops0001
+status: experimental
+description: >
+  RedOps recon (T1046 Network Service Discovery) runs `nmap -sV` probes from a
+  single operator host. This rule flags a host receiving many short-lived
+  TCP SYN scans within 2 minutes — useful to validate detection coverage for
+  authorized RedOps engagements.
+references:
+  - https://attack.mitre.org/techniques/T1046/
+logsource:
+  category: firewall
+  product: linux
+detection:
+  selection_syn:
+    EventType: syn_scan_start
+    DestinationPort: 22
+  selection_syn2:
+    EventType: syn_scan_start
+    DestinationPort: 445
+  selection_syn3:
+    EventType: syn_scan_start
+    DestinationPort: 3306
+  filter_internal:
+    SourceIp:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+  condition: 1 of selection_*
+  timeframe: 2m
+  aggregation:
+    - DestinationIp
+falsepositives:
+  - Approved vulnerability scanners
+  - Monitoring nodes performing connectivity checks
+level: low
+tags:
+  - attack.discovery
+  - attack.t1046
