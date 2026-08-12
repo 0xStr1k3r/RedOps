@@ -26,6 +26,10 @@ func Open(path string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Single connection: :memory: databases are per-connection (a pool would
+	// fragment them), and it serializes writers on file DBs (no SQLITE_BUSY).
+	// The worker/API run as separate processes with their own handles.
+	db.SetMaxOpenConns(1)
 	s := &Store{db: db}
 	if err := s.migrate(); err != nil {
 		_ = db.Close()
