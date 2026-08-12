@@ -14,3 +14,8 @@ GUI is intentionally fingerprinted by these signatures.
 
 Rules are **experimental** and tuned for lab use; widen filters before
 production deployment.
+
+Validating them is part of a RedOps engagement: run a scenario against the
+`lab/` sandbox (read-only pipeline, same single binary) and confirm the
+SIEM fires. The GUI/User-Agent in these rules is the visible fingerprint
+RedOps intentionally leaves on HTTP enumeration.

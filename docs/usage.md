@@ -98,6 +98,8 @@ Global flag: `--db PATH` (default `redops.db`; server/worker share the file).
 redops version
 redops serve --addr :8080 --secret ...        # API + GUI (secret: flag>env>auto-file)
 redops worker --interval 5s --once            # poll recon/enum queues
+# every command below takes --db PATH (default redops.db); serve and worker
+# must use the same file
 
 redops project create NAME [--scope CIDR...] [--description T]
 redops project list
@@ -141,6 +143,8 @@ redops scenario runs PROJECT
 redops cloud import PROJECT --file iam.json
 redops cloud assets PROJECT
 redops cloud paths PROJECT
+
+redops insights PROJECT                         # prioritized next actions
 ```
 
 IDs accept unambiguous prefixes (`findings update acme 79e920a9 ...`).
@@ -177,17 +181,45 @@ Conventions: 202 = queued (poll the resource), 400 = bad input/unknown tool,
 
 ## 7. Services & operations
 
+**Everything is the single `redops` binary.** There is no second tool to
+install: `serve` = API + GUI, `worker` = job runner, and every module below
+(project/scope/targets, recon, enum, findings, validate, mitre, graph, paths,
+evidence, reports, scenarios, cloud, insights) is a `redops` subcommand.
+The API accepts the same operations over REST for automation.
+
 - **Worker:** one `redops worker` per DB (or `REDOPS_WORKER_ONCE=1` for a
   single pass in cron/CI). Recon jobs need `nmap|httpx|dnsx|subfinder`
   binaries; missing ones fail the job with an install hint, never the server.
-- **systemd:** `install.sh --service` creates `redops.service`
-  (`/var/lib/redops/redops.db`, localhost:8080). Run the worker as a second
-  unit or a second `ExecStart` line per your policy.
+- **systemd:** `install.sh --service` creates a `redops.service`
+  (`/var/lib/redops/redops.db`, localhost:8080). For a hardened deployment
+  use `scripts/production-setup.sh` instead (dedicated `redops` user, 0640
+  secret env at `/etc/redops/env`) and add a second unit running
+  `redops worker` on the same `--db` as a separate service.
+- **TLS:** RedOps serves plain HTTP on loopback by design. Put
+  `deployments/nginx-redops.conf` in front of it (TLS 1.2/1.3, proxy headers)
+  and never expose port 8080 directly.
 - **Neo4j (optional):** `docker compose --profile graph up -d` with
   `NEO4J_AUTH` in `.env`, then `graph sync` (CLI) or `POST .../graph/sync`.
   Everything else works without it.
-- **Backups:** copy the SQLite file + `.redops-secret` (losing the secret
-  only logs users out; losing the DB loses data).
+- **Backups:** `scripts/backup.sh [db] [dir]` uses the SQLite `.backup` API
+  (safe while the server runs), copies `.redops-secret` too, keeps 14 copies.
+  Losing the secret only logs users out; losing the DB loses data.
+
+## 7.1 Lab sandbox (testing only, not the product)
+
+`lab/` is a small separate playground for trying RedOps without touching
+real systems. The product never reads from it. See `lab/README.md`.
+
+```bash
+cd lab
+docker compose up -d --build      # or the docker run commands in lab/README.md
+./seed.sh                         # full pipeline into ~/vulnlab.db
+./smoke.sh                        # asserts the pipeline produces findings
+```
+
+All commands used there are the same `redops` subcommands (recon, enum,
+findings, paths, report) — running them against your real engagements
+changes nothing but the project name and scope.
 
 ## 8. Troubleshooting
 

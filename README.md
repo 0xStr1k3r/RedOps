@@ -37,6 +37,8 @@ manual: [docs/usage.md](docs/usage.md). `lab/` is a separate testing sandbox
 - GUI: embedded dark SPA (10 views) + dashboard widgets, insights, Navigator heat matrix — see `docs/usage.md` §4
 - Universal `install.sh` (Debian/Arch/RHEL/openSUSE/Alpine) + CI: tests, vet, gosec, Trivy
 - Hardened: [security review](docs/security-review.md) — govulncheck 0 reachable, gosec 0 issues
+- Operations: `scripts/production-setup.sh` (service user + secrets), `scripts/backup.sh`, `deployments/redops.service`, `deployments/nginx-redops.conf`
+- Detection validation: Sigma rules in `scenarios/sigma/`
 
 ## Install (one binary, any Linux)
 
