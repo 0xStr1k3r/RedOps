@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redops/redops/internal/scope"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
 )
 
 // Result is one validator run.

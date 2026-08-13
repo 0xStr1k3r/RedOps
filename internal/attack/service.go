@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/redops/redops/internal/attackgraph"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/attackgraph"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // Generate rebuilds all attack paths for a project from the current graph

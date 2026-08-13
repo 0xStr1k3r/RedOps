@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/redops/redops/internal/project"
-	"github.com/redops/redops/internal/worker"
+	"github.com/0xStr1k3r/RedOps/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/worker"
 )
 
 func envOr(k, d string) string {

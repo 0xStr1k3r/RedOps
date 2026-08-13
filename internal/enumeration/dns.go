@@ -6,9 +6,9 @@ import (
 	"net"
 	"strings"
 
-	"github.com/redops/redops/internal/mitre"
-	"github.com/redops/redops/internal/scope"
-	"github.com/redops/redops/pkg/dnsx"
+	"github.com/0xStr1k3r/RedOps/internal/mitre"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
+	"github.com/0xStr1k3r/RedOps/pkg/dnsx"
 )
 
 // DNSModule resolves A records for in-scope hostnames using the system

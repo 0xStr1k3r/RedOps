@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/redops/redops/internal/auth"
-	"github.com/redops/redops/internal/cloud"
+	"github.com/0xStr1k3r/RedOps/internal/auth"
+	"github.com/0xStr1k3r/RedOps/internal/cloud"
 )
 
 func handleCloudImport(cfg Config) http.HandlerFunc {

@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/redops/redops/internal/auth"
-	"github.com/redops/redops/internal/findings"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/auth"
+	"github.com/0xStr1k3r/RedOps/internal/findings"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 func handleCreateFinding(cfg Config) http.HandlerFunc {

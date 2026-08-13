@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/redops/redops/internal/mitre"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/mitre"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // Metrics headline the executive summary.

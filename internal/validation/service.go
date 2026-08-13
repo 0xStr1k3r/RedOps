@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/redops/redops/internal/evidence"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/evidence"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // ValidateFinding runs every validator matching the finding title and records

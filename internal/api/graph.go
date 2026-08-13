@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/redops/redops/internal/attackgraph"
-	"github.com/redops/redops/internal/auth"
-	"github.com/redops/redops/internal/cloud"
+	"github.com/0xStr1k3r/RedOps/internal/attackgraph"
+	"github.com/0xStr1k3r/RedOps/internal/auth"
+	"github.com/0xStr1k3r/RedOps/internal/cloud"
 )
 
 // withCloud merges stored IAM nodes into the infra graph (best-effort:

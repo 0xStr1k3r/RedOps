@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redops/redops/internal/evidence"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/evidence"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // Enqueue validates tool support + scope, then persists a queued job.

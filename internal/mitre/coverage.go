@@ -3,7 +3,7 @@ package mitre
 import (
 	"fmt"
 
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // TechniqueHit is one observed technique with evidence counts.

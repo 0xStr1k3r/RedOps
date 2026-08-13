@@ -1,6 +1,6 @@
 [Unit]
 Description=RedOps red-team platform (API + GUI)
-Documentation=https://github.com/redops/redops/blob/main/docs/usage.md
+Documentation=https://github.com/0xStr1k3r/RedOps/blob/main/docs/usage.md
 After=network.target
 
 [Service]

@@ -3,7 +3,7 @@ package findings
 import (
 	"fmt"
 
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // RaiseFromEnumResults loads all enum results for a project, runs the rule

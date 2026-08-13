@@ -4,7 +4,7 @@
 #
 # Installs the single `redops` binary (CLI + API + embedded GUI + worker):
 #
-#   curl -fsSL https://raw.githubusercontent.com/redops/redops/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/0xStr1k3r/RedOps/main/install.sh | bash
 #   redops --db ~/redops.db serve --addr 127.0.0.1:8080   # API + GUI
 #   redops --db ~/redops.db worker                        # job runner (another shell)
 #
@@ -23,7 +23,7 @@ PREFIX="/usr/local"
 WITH_NMAP=1
 WITH_SERVICE=0
 UNINSTALL=0
-REPO="${REDOPS_REPO:-https://github.com/redops/redops.git}"
+REPO="${REDOPS_REPO:-https://github.com/0xStr1k3r/RedOps.git}"
 GO_VERSION="${GO_VERSION:-1.26.9}"
 
 log()  { printf '\033[1;32m[redops]\033[0m %s\n' "$*"; }
@@ -162,7 +162,7 @@ log "$(go version) ready"
 
 # --- 3. source ---------------------------------------------------------------
 SRC=""
-if [ -f ./go.mod ] && [ -f ./Makefile ] && grep -q "module github.com/redops/redops" ./go.mod 2>/dev/null; then
+if [ -f ./go.mod ] && [ -f ./Makefile ] && grep -q "module github.com/0xStr1k3r/RedOps" ./go.mod 2>/dev/null; then
   SRC="$PWD"; log "building from current directory"
 else
   if [ -d "$REPO" ]; then SRC="$REPO"; log "building from $REPO";

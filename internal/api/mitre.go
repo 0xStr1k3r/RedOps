@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/redops/redops/internal/mitre"
+	"github.com/0xStr1k3r/RedOps/internal/mitre"
 )
 
 func handleMitreTactics(cfg Config) http.HandlerFunc {

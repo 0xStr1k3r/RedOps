@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/redops/redops/internal/api"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/api"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 func env(key, fallback string) string {

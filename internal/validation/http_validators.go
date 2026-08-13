@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redops/redops/internal/scope"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
 )
 
 // splitTarget parses "host:port" (port defaults to 80).

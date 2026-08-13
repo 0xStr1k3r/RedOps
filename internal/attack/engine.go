@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/redops/redops/internal/attackgraph"
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/attackgraph"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 // Options bounds enumeration.

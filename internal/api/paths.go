@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/redops/redops/internal/attack"
-	"github.com/redops/redops/internal/auth"
+	"github.com/0xStr1k3r/RedOps/internal/attack"
+	"github.com/0xStr1k3r/RedOps/internal/auth"
 )
 
 func handleGeneratePaths(cfg Config) http.HandlerFunc {

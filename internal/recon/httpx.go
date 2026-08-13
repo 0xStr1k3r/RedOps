@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/redops/redops/internal/scope"
-	"github.com/redops/redops/pkg/httpx"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
+	"github.com/0xStr1k3r/RedOps/pkg/httpx"
 )
 
 // HttpxTool probes web services: title, server, tech, status, TLS (T1046/T1594).

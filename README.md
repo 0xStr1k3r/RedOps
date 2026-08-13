@@ -43,7 +43,7 @@ manual: [docs/usage.md](docs/usage.md). `lab/` is a separate testing sandbox
 ## Install (one binary, any Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/redops/redops/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/0xStr1k3r/RedOps/main/install.sh | bash
 redops --db ~/redops.db serve --addr 127.0.0.1:8080   # API + GUI at http://127.0.0.1:8080
 redops --db ~/redops.db worker                        # job runner (second shell)
 ```

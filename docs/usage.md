@@ -10,11 +10,11 @@ worker. Three ways to get it:
 
 ```bash
 # A. Universal installer — Debian/Ubuntu, Arch, RHEL/Fedora/Rocky/Alma, openSUSE, Alpine
-curl -fsSL https://raw.githubusercontent.com/redops/redops/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/0xStr1k3r/RedOps/main/install.sh | bash
 # options: --prefix DIR | --without-nmap | --service | --uninstall | --help
 
 # B. From source (Go >= 1.21; module toolchain auto-upgrades)
-git clone https://github.com/redops/redops.git && cd redops
+git clone git@github.com:0xStr1k3r/RedOps.git && cd RedOps
 make build            # bin/redops (+ api/worker splits)
 make install          # installs bin/redops to /usr/local/bin (PREFIX=... to override)
 

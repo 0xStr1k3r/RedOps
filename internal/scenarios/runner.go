@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redops/redops/internal/attack"
-	"github.com/redops/redops/internal/enumeration"
-	"github.com/redops/redops/internal/evidence"
-	"github.com/redops/redops/internal/findings"
-	"github.com/redops/redops/internal/project"
-	"github.com/redops/redops/internal/recon"
-	"github.com/redops/redops/internal/scope"
-	"github.com/redops/redops/internal/validation"
+	"github.com/0xStr1k3r/RedOps/internal/attack"
+	"github.com/0xStr1k3r/RedOps/internal/enumeration"
+	"github.com/0xStr1k3r/RedOps/internal/evidence"
+	"github.com/0xStr1k3r/RedOps/internal/findings"
+	"github.com/0xStr1k3r/RedOps/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/recon"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
+	"github.com/0xStr1k3r/RedOps/internal/validation"
 )
 
 // StepResult records one executed step.

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/redops/redops/internal/attackgraph"
+	"github.com/0xStr1k3r/RedOps/internal/attackgraph"
 )
 
 // Path is one privilege path to admin (or one over-broad trust warning).

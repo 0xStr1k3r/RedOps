@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/redops/redops/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/project"
 )
 
 func TestGraphEndpoints(t *testing.T) {

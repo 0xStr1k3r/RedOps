@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/redops/redops/internal/scope"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
 	_ "modernc.org/sqlite"
 )
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/redops/redops/internal/scope"
-	"github.com/redops/redops/pkg/dnsx"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
+	"github.com/0xStr1k3r/RedOps/pkg/dnsx"
 )
 
 // DnsxTool resolves DNS records for in-scope domains (T1590).

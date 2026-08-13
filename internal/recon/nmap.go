@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/redops/redops/internal/scope"
-	pkgnmap "github.com/redops/redops/pkg/nmap"
+	"github.com/0xStr1k3r/RedOps/internal/scope"
+	pkgnmap "github.com/0xStr1k3r/RedOps/pkg/nmap"
 )
 
 // NmapTool runs authorized `nmap -oX -` scans. Never runs without scope.

@@ -8,9 +8,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/redops/redops/internal/enumeration"
-	"github.com/redops/redops/internal/project"
-	"github.com/redops/redops/internal/recon"
+	"github.com/0xStr1k3r/RedOps/internal/enumeration"
+	"github.com/0xStr1k3r/RedOps/internal/project"
+	"github.com/0xStr1k3r/RedOps/internal/recon"
 )
 
 // RunOnce claims and executes at most one recon job and one enum job.
