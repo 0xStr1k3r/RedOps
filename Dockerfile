@@ -1,6 +1,6 @@
 # RedOps image: single Go build (API + embedded GUI). SQLite by default.
 # GUI sources in web/dist are embedded at build time (see Makefile sync-web).
-FROM golang:1.26-alpine AS build
+FROM golang:1.26.9-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download

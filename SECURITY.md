@@ -47,7 +47,8 @@ no payloads, no persistence, no EDR bypass**.
 
 Full audit (auth, scope/SSRF, exec, SQL, XSS, transport, crypto, deps):
 [docs/security-review.md](docs/security-review.md) — govulncheck 0 reachable,
-gosec 0 issues. Re-run before every release (last re-run: 2026-08-26).
+gosec 0 issues. Re-run before every release (last re-run: 2026-10-14, on Go 1.26.9
+after advisory GO-2026-6617).
 
 ## 6. Reporting vulnerabilities in RedOps
 

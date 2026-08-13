@@ -2,8 +2,11 @@
 
 Method: manual code audit of every package (auth, scope, exec, SQL, output
 encoding, secrets, network) + `govulncheck` (dependencies) + `gosec`
-(static analysis) + live verification. Toolchain raised to Go 1.26.8 during
-this review to clear all stdlib findings.
+(static analysis) + live verification.
+
+Toolchain history: go1.26.0 → 1.26.8 (Sept 2025 review) → **1.26.9**
+(2026-10-14 re-run, after advisory GO-2026-6617, an HTTP/2 HPACK encoder race
+in `net/http`; installer, Dockerfile, and CI pinned to 1.26.9).
 
 Results: **govulncheck 0 reachable · gosec 0 issues · go vet clean · 19 test
 packages green.**
