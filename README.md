@@ -1,8 +1,13 @@
 # RedOps — Red-Team Attack Path & Adversary Emulation Platform
 
-> **Authorized assessments only.** RedOps enforces project scope on every target.
-> Out-of-scope targets are refused (HTTP 403 / CLI error) and audit-logged.
-> See [SECURITY.md](SECURITY.md).
+> **Status:** `0.4.6` — all 12 phases shipped (recon → enumeration → findings →
+> ATT&CK → attack graph → paths → validation → evidence → reports →
+> scenarios → cloud), plus embedded GUI and installer. Pre-1.0: the schema
+> and CLI may still change.
+
+> **Authorized assessments only.** RedOps enforces project scope on every
+> target. Out-of-scope targets are refused (HTTP 403 / CLI error) and
+> audit-logged. See [SECURITY.md](SECURITY.md).
 
 Modular red-team platform: project → scope → targets → recon → enumeration →
 findings → MITRE ATT&CK → attack graph → validation (lab-only) → evidence →

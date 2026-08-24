@@ -71,15 +71,24 @@ git push -u origin main
 git push --force-with-lease origin main
 ```
 
-## After the push: create a tag + release
+## After the push: push the release tag
+
+The repo ships with an annotated tag already created (`0.4.6`). Just push it:
 
 ```bash
-git tag -a v1.0.0 -m "RedOps v1.0.0 — red-team attack-path platform"
-git push origin v1.0.0
+git push origin 0.4.6
 ```
 
-`v1.0.0` will be the commit tagged by the installer default, so
-`install.sh` and `docs/` links resolve on GitHub.
+To tag a later release instead:
+
+```bash
+git tag -a 0.5.0 -m "RedOps 0.5.0 — <what changed>"
+git push origin 0.5.0
+```
+
+Versioning is pre-1.0 semver (no `v` prefix) — `0.x.y` signals the platform is
+still evolving; `make build` stamps the tag into `redops version` via
+`git describe --tags`.
 
 ## Verify the one-liner installs from GitHub
 
